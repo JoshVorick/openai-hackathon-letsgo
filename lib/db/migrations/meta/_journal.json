@@ -57,6 +57,20 @@
       "when": 1757362773211,
       "tag": "0007_flowery_ben_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1759002978137,
+      "tag": "0008_calm_fabian_cortez",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1759004100305,
+      "tag": "0009_tiny_morlocks",
+      "breakpoints": true
     }
   ]
 }

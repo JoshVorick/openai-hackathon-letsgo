@@ -1,6 +1,8 @@
 import type { InferSelectModel } from "drizzle-orm";
 import {
   boolean,
+  date,
+  decimal,
   foreignKey,
   json,
   jsonb,
@@ -171,3 +173,74 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// Hotel management tables
+
+export const companySettings = pgTable("CompanySettings", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  address: text("address").notNull(),
+  url: varchar("url", { length: 512 }),
+  contact: varchar("contact", { length: 255 }),
+  phoneNumber: varchar("phoneNumber", { length: 32 }),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type CompanySettings = InferSelectModel<typeof companySettings>;
+
+export const services = pgTable("Services", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("room"),
+  rateLowerUsd: decimal("rateLowerUsd", { precision: 10, scale: 2 }).notNull(),
+  rateUpperUsd: decimal("rateUpperUsd", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type Services = InferSelectModel<typeof services>;
+
+export const rooms = pgTable("Rooms", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  serviceId: uuid("serviceId")
+    .notNull()
+    .references(() => services.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  roomNumber: varchar("roomNumber", { length: 10 }).notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type Rooms = InferSelectModel<typeof rooms>;
+
+export const roomRates = pgTable("RoomRates", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  day: date("day").notNull(),
+  roomId: uuid("roomId")
+    .notNull()
+    .references(() => rooms.id),
+  serviceId: uuid("serviceId")
+    .notNull()
+    .references(() => services.id),
+  status: varchar("status", { enum: ["empty", "confirmed"] })
+    .notNull()
+    .default("empty"),
+  priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }).notNull(),
+  dateBooked: date("dateBooked"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type RoomRates = InferSelectModel<typeof roomRates>;
+
+export const competitorRoomRates = pgTable("CompetitorRoomRates", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  day: date("day").notNull(),
+  roomType: varchar("roomType", { length: 100 }).notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type CompetitorRoomRates = InferSelectModel<typeof competitorRoomRates>;
