@@ -1,7 +1,0 @@
-{
-  "name": "openai",
-  "version": "0.0.0",
-  "type": "module",
-  "exports": "./index.js",
-  "types": "./index.d.ts"
-}

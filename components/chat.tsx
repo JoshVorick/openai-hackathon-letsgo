@@ -1,19 +1,47 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import useSWR, { useSWRConfig } from "swr";
+import { unstable_serialize } from "swr/infinite";
+import { ChatHeader } from "@/components/chat-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useAutoResume } from "@/hooks/use-auto-resume";
+import { useChatVisibility } from "@/hooks/use-chat-visibility";
+import type { Vote } from "@/lib/db/schema";
+import { ChatSDKError } from "@/lib/errors";
+import type { Attachment, ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
-import type { ChatMessage } from "@/lib/types";
-import { generateUUID } from "@/lib/utils";
+import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { Artifact } from "./artifact";
+import { useDataStream } from "./data-stream-provider";
+import { Messages } from "./messages";
+import { MultimodalInput } from "./multimodal-input";
+import { getChatHistoryPaginationKey } from "./sidebar-history";
+import { toast } from "./toast";
 import type { VisibilityType } from "./visibility-selector";
 
-type SimpleMessage = {
-  id: string;
-  role: "user" | "assistant";
-  text: string;
-};
-
-type ChatProps = {
+export function Chat({
+  id,
+  initialMessages,
+  initialChatModel,
+  initialVisibilityType,
+  isReadonly,
+  autoResume,
+  initialLastContext,
+}: {
   id: string;
   initialMessages: ChatMessage[];
   initialChatModel: string;
@@ -21,206 +49,201 @@ type ChatProps = {
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
-};
+}) {
+  const { visibilityType } = useChatVisibility({
+    chatId: id,
+    initialVisibilityType,
+  });
 
-function extractTextFromParts(parts: unknown): string | null {
-  if (!Array.isArray(parts)) {
-    return null;
-  }
+  const { mutate } = useSWRConfig();
+  const { setDataStream } = useDataStream();
 
-  const textParts = parts
-    .map((part: any) => {
-      if (part && typeof part === "object") {
-        if (part.type === "text" && typeof part.text === "string") {
-          return part.text;
-        }
-        if (part.type === "tool-invocation" && part.state === "result") {
-          if (typeof part.result === "string") {
-            return part.result;
-          }
-          if (part.result) {
-            try {
-              return JSON.stringify(part.result);
-            } catch {
-              return String(part.result);
-            }
-          }
+  const [input, setInput] = useState<string>("");
+  const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
+  const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
+  const [currentModelId, setCurrentModelId] = useState(initialChatModel);
+  const currentModelIdRef = useRef(currentModelId);
+
+  useEffect(() => {
+    currentModelIdRef.current = currentModelId;
+  }, [currentModelId]);
+
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    resumeStream,
+  } = useChat<ChatMessage>({
+    id,
+    messages: initialMessages,
+    experimental_throttle: 100,
+    generateId: generateUUID,
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      fetch: fetchWithErrorHandlers,
+      prepareSendMessagesRequest(request) {
+        return {
+          body: {
+            id: request.id,
+            message: request.messages.at(-1),
+            selectedChatModel: currentModelIdRef.current,
+            selectedVisibilityType: visibilityType,
+            ...request.body,
+          },
+        };
+      },
+    }),
+    onData: (dataPart) => {
+      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+      if (dataPart.type === "data-usage") {
+        setUsage(dataPart.data);
+      }
+    },
+    onFinish: () => {
+      mutate(unstable_serialize(getChatHistoryPaginationKey));
+    },
+    onError: (error) => {
+      if (error instanceof ChatSDKError) {
+        // Check if it's a credit card error
+        if (
+          error.message?.includes("AI Gateway requires a valid credit card")
+        ) {
+          setShowCreditCardAlert(true);
+        } else {
+          toast({
+            type: "error",
+            description: error.message,
+          });
         }
       }
-      return null;
-    })
-    .filter((value: string | null): value is string => Boolean(value));
+    },
+  });
 
-  if (textParts.length === 0) {
-    return null;
-  }
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query");
 
-  return textParts.join("\n");
-}
+  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
 
-function convertToSimpleMessage(message: ChatMessage): SimpleMessage | null {
-  if (message.role !== "user" && message.role !== "assistant") {
-    return null;
-  }
-
-  const textFromParts = extractTextFromParts((message as any).parts);
-  const textFromContent = extractTextFromParts((message as any).content);
-  const text = textFromParts ?? textFromContent ?? "[content unavailable]";
-
-  return {
-    id: message.id ?? generateUUID(),
-    role: message.role,
-    text,
-  };
-}
-
-export function Chat({
-  id,
-  initialMessages,
-  isReadonly,
-  autoResume,
-  initialChatModel,
-  initialVisibilityType,
-  initialLastContext,
-}: ChatProps) {
-  void id;
-  void autoResume;
-  void initialChatModel;
-  void initialVisibilityType;
-  void initialLastContext;
-
-  const initial = useMemo(() => {
-    return initialMessages
-      .map((message) => convertToSimpleMessage(message))
-      .filter((message): message is SimpleMessage => Boolean(message));
-  }, [initialMessages]);
-
-  const [messages, setMessages] = useState<SimpleMessage[]>(initial);
-  const [input, setInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const trimmed = input.trim();
-    if (!trimmed || isReadonly) {
-      return;
-    }
-
-    setError(null);
-    setInput("");
-    const userMessage: SimpleMessage = {
-      id: generateUUID(),
-      role: "user",
-      text: trimmed,
-    };
-    setMessages((current) => [...current, userMessage]);
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: trimmed }),
+  useEffect(() => {
+    if (query && !hasAppendedQuery) {
+      sendMessage({
+        role: "user" as const,
+        parts: [{ type: "text", text: query }],
       });
 
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as
-          | { error?: string }
-          | undefined;
-        const message = data?.error ?? "Request failed";
-        setError(message);
-        setMessages((current) => [
-          ...current,
-          { id: generateUUID(), role: "assistant", text: message },
-        ]);
-        return;
-      }
-
-      const data = (await response.json()) as { message: string | null };
-      const text = data.message ?? "";
-      const assistantMessage: SimpleMessage = {
-        id: generateUUID(),
-        role: "assistant",
-        text,
-      };
-      setMessages((current) => [...current, assistantMessage]);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unexpected error occurred";
-      setError(message);
-      setMessages((current) => [
-        ...current,
-        { id: generateUUID(), role: "assistant", text: message },
-      ]);
-    } finally {
-      setIsSubmitting(false);
+      setHasAppendedQuery(true);
+      window.history.replaceState({}, "", `/chat/${id}`);
     }
-  };
+  }, [query, sendMessage, hasAppendedQuery, id]);
+
+  const { data: votes } = useSWR<Vote[]>(
+    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
+    fetcher
+  );
+
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+
+  useAutoResume({
+    autoResume,
+    initialMessages,
+    resumeStream,
+    setMessages,
+  });
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`rounded-lg border p-3 text-sm leading-relaxed ${
-                message.role === "user"
-                  ? "border-primary/40 bg-primary/5"
-                  : "border-secondary/40 bg-secondary/10"
-              }`}
-            >
-              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {message.role === "user" ? "You" : "Assistant"}
-              </div>
-              <p className="whitespace-pre-wrap">{message.text}</p>
-            </div>
-          ))}
-          {messages.length === 0 && (
-            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Ask the assistant a question to get started.
-            </div>
-          )}
-          {error && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+    <>
+      <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
+        <ChatHeader
+          chatId={id}
+          isReadonly={isReadonly}
+          selectedVisibilityType={initialVisibilityType}
+        />
+
+        <Messages
+          chatId={id}
+          isArtifactVisible={isArtifactVisible}
+          isReadonly={isReadonly}
+          messages={messages}
+          regenerate={regenerate}
+          selectedModelId={initialChatModel}
+          setMessages={setMessages}
+          status={status}
+          votes={votes}
+        />
+
+        <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+          {!isReadonly && (
+            <MultimodalInput
+              attachments={attachments}
+              chatId={id}
+              input={input}
+              messages={messages}
+              onModelChange={setCurrentModelId}
+              selectedModelId={currentModelId}
+              selectedVisibilityType={visibilityType}
+              sendMessage={sendMessage}
+              setAttachments={setAttachments}
+              setInput={setInput}
+              setMessages={setMessages}
+              status={status}
+              stop={stop}
+              usage={usage}
+            />
           )}
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="border-t bg-background p-4 shadow-[0_-1px_0_rgba(0,0,0,0.05)]"
+      <Artifact
+        attachments={attachments}
+        chatId={id}
+        input={input}
+        isReadonly={isReadonly}
+        messages={messages}
+        regenerate={regenerate}
+        selectedModelId={currentModelId}
+        selectedVisibilityType={visibilityType}
+        sendMessage={sendMessage}
+        setAttachments={setAttachments}
+        setInput={setInput}
+        setMessages={setMessages}
+        status={status}
+        stop={stop}
+        votes={votes}
+      />
+
+      <AlertDialog
+        onOpenChange={setShowCreditCardAlert}
+        open={showCreditCardAlert}
       >
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 sm:flex-row">
-          <label className="sr-only" htmlFor="chat-input">
-            Message
-          </label>
-          <input
-            id="chat-input"
-            type="text"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder={
-              isReadonly
-                ? "Chat is read-only"
-                : "Send a message to the assistant"
-            }
-            disabled={isSubmitting || isReadonly}
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting || isReadonly || input.trim().length === 0}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Sending..." : "Send"}
-          </button>
-        </div>
-      </form>
-    </div>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Activate AI Gateway</AlertDialogTitle>
+            <AlertDialogDescription>
+              This application requires{" "}
+              {process.env.NODE_ENV === "production" ? "the owner" : "you"} to
+              activate Vercel AI Gateway.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                window.open(
+                  "https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%3Fmodal%3Dadd-credit-card",
+                  "_blank"
+                );
+                window.location.href = "/";
+              }}
+            >
+              Activate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
