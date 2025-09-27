@@ -41,6 +41,7 @@ export function Chat({
   isReadonly,
   autoResume,
   initialLastContext,
+  variant = "full",
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -49,6 +50,7 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
+  variant?: "full" | "overlay";
 }) {
   const { visibilityType } = useChatVisibility({
     chatId: id,
@@ -154,9 +156,14 @@ export function Chat({
     setMessages,
   });
 
+  const containerClassName =
+    variant === "overlay"
+      ? "overscroll-behavior-contain flex h-full min-h-0 min-w-0 touch-pan-y flex-col bg-background"
+      : "overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background";
+
   return (
     <>
-      <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
+      <div className={containerClassName}>
         <ChatHeader
           chatId={id}
           isReadonly={isReadonly}
