@@ -1,0 +1,1 @@
+ALTER TABLE "RoomRates" ADD COLUMN "dateBooked" date;

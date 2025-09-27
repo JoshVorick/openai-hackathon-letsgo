@@ -15,6 +15,9 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
+    "db:seed-hotel": "npx tsx lib/db/seed-hotel.ts",
+    "db:seed-room-rates": "npx tsx lib/db/seed-room-rates.ts",
+    "db:seed-historical-reservations": "npx tsx lib/db/seed-historical-reservations.ts",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
   },
   "dependencies": {
