@@ -4,7 +4,6 @@ import {
   date,
   decimal,
   foreignKey,
-  integer,
   json,
   jsonb,
   pgTable,

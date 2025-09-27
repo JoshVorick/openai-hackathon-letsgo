@@ -3,20 +3,20 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import {
   companySettings,
-  services,
-  rooms,
-  roomRates,
   competitorRoomRates,
+  roomRates,
+  rooms,
+  services,
 } from "./schema";
 
 config({ path: ".env.local" });
 
-const client = postgres(process.env.POSTGRES_URL!);
+const client = postgres(process.env.POSTGRES_URL || "");
 const db = drizzle(client);
 
 async function clearHotelData() {
   console.log("Clearing existing hotel data...");
-  
+
   try {
     // Delete in reverse order of dependencies
     await db.delete(competitorRoomRates);
@@ -24,7 +24,7 @@ async function clearHotelData() {
     await db.delete(rooms);
     await db.delete(services);
     await db.delete(companySettings);
-    
+
     console.log("✓ Existing hotel data cleared");
   } catch (error) {
     console.error("Error clearing hotel data:", error);
@@ -70,14 +70,16 @@ async function seedHotelData() {
     console.log(`✓ ${insertedServices.length} services created`);
 
     // 3. Insert 50 base rate rooms
-    const roomsData = [];
+    const roomsData: any[] = [];
     const service = insertedServices[0]; // Only one service now
-    
+
     for (let i = 1; i <= 50; i++) {
       const floor = Math.floor((i - 1) / 10) + 1; // 10 rooms per floor, starting floor 1
       const roomOnFloor = ((i - 1) % 10) + 1; // Room 1-10 on each floor
-      const roomNum = floor.toString().padStart(2, '0') + roomOnFloor.toString().padStart(2, '0');
-      
+      const roomNum =
+        floor.toString().padStart(2, "0") +
+        roomOnFloor.toString().padStart(2, "0");
+
       roomsData.push({
         serviceId: service.id,
         name: `Room ${roomNum}`,
@@ -97,7 +99,6 @@ Summary:
 - Room rates: Ready for manual setup
 - Competitor rates: Ready for manual setup
     `);
-
   } catch (error) {
     console.error("Error seeding hotel data:", error);
     throw error;

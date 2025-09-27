@@ -1,5 +1,9 @@
-import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import Link from "next/link";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
 
 export default function AdminLayout({
   children,
@@ -12,29 +16,29 @@ export default function AdminLayout({
         <Sidebar className="w-64 border-r bg-gray-50">
           <SidebarContent>
             <div className="p-4">
-              <h2 className="text-xl font-bold mb-4">Hotel Admin</h2>
+              <h2 className="mb-4 font-bold text-xl">Hotel Admin</h2>
               <nav className="space-y-2">
-                <Link 
-                  href="/admin/overview" 
-                  className="block p-2 rounded hover:bg-gray-200 font-medium"
+                <Link
+                  className="block rounded p-2 font-medium hover:bg-gray-200"
+                  href="/admin/overview"
                 >
                   Overview
                 </Link>
-                <Link 
-                  href="/admin/rooms" 
-                  className="block p-2 rounded hover:bg-gray-200 text-gray-600"
+                <Link
+                  className="block rounded p-2 text-gray-600 hover:bg-gray-200"
+                  href="/admin/rooms"
                 >
                   Rooms
                 </Link>
-                <Link 
-                  href="/admin/rates" 
-                  className="block p-2 rounded hover:bg-gray-200 text-gray-600"
+                <Link
+                  className="block rounded p-2 text-gray-600 hover:bg-gray-200"
+                  href="/admin/rates"
                 >
                   Rates
                 </Link>
-                <Link 
-                  href="/admin/reservations" 
-                  className="block p-2 rounded hover:bg-gray-200 text-gray-600"
+                <Link
+                  className="block rounded p-2 text-gray-600 hover:bg-gray-200"
+                  href="/admin/reservations"
                 >
                   Reservations
                 </Link>
@@ -42,9 +46,7 @@ export default function AdminLayout({
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
       </div>
     </SidebarProvider>
   );

@@ -1,16 +1,15 @@
 import { config } from "dotenv";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq } from "drizzle-orm";
-import {
-  rooms,
-  services,
-  roomRates,
-} from "./schema";
+import { roomRates, rooms, services } from "./schema";
 
 config({ path: ".env.local" });
 
-const client = postgres(process.env.POSTGRES_URL!);
+const HEADER_SPLIT_REGEX = /\s+/;
+const DATA_SPLIT_REGEX = /\s+/;
+
+const client = postgres(process.env.POSTGRES_URL || "");
 const db = drizzle(client);
 
 // The room rate data provided - starting from 1/1/2024
@@ -18,67 +17,70 @@ const roomRateData = `hotel_name        1/1/2024    1/2/2024    1/3/2024    1/4/
 The Ned NoMad    base    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450    585    608    338    450    450    450`;
 
 function parseRoomRateData(data: string) {
-  const lines = data.trim().split('\n');
+  const lines = data.trim().split("\n");
   const headerLine = lines[0];
   const dataLine = lines[1];
-  
+
   // Parse header to get dates
-  const headerParts = headerLine.split(/\s+/);
+  const headerParts = headerLine.split(HEADER_SPLIT_REGEX);
   const dates = headerParts.slice(2); // Skip 'hotel_name' and room type
-  
+
   // Parse data line
-  const dataParts = dataLine.split(/\s+/);
-  const hotelName = dataParts.slice(0, 2).join(' '); // "The Ned"
-  const roomType = dataParts[2]; // "base" 
+  const dataParts = dataLine.split(DATA_SPLIT_REGEX);
+  const hotelName = dataParts.slice(0, 2).join(" "); // "The Ned"
+  const roomType = dataParts[2]; // "base"
   const prices = dataParts.slice(3); // All the prices
-  
+
   console.log(`Hotel: ${hotelName}, Room Type: ${roomType}`);
   console.log(`Found ${dates.length} dates and ${prices.length} prices`);
-  
+
   // Create date-price pairs
-  const ratePairs = [];
+  const ratePairs: Array<{ date: Date; price: number }> = [];
   for (let i = 0; i < Math.min(dates.length, prices.length); i++) {
     const dateStr = dates[i];
     const price = prices[i];
-    
+
     // Convert M/D/YYYY to YYYY-MM-DD format
-    const [month, day, year] = dateStr.split('/');
-    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    
+    const [month, day, year] = dateStr.split("/");
+    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+
     ratePairs.push({
       date: formattedDate,
-      price: parseFloat(price)
+      price: Number.parseFloat(price),
     });
   }
-  
+
   return ratePairs;
 }
 
 async function seedRoomRates() {
   console.log("Seeding room rates...");
-  
+
   try {
     // Parse the rate data
     const ratePairs = parseRoomRateData(roomRateData);
     console.log(`Parsed ${ratePairs.length} rate entries`);
-    
+
     // Get all rooms and the base rate service
     const allRooms = await db.select().from(rooms);
-    const baseService = await db.select().from(services).where(eq(services.name, "Base Rate"));
-    
+    const baseService = await db
+      .select()
+      .from(services)
+      .where(eq(services.name, "Base Rate"));
+
     if (baseService.length === 0) {
       throw new Error("Base Rate service not found");
     }
-    
+
     console.log(`Found ${allRooms.length} rooms to populate with rates`);
-    
+
     // Clear existing room rates first
     await db.delete(roomRates);
     console.log("✓ Existing room rates cleared");
-    
+
     // Create room rates for each room and each date
-    const roomRateEntries = [];
-    
+    const roomRateEntries: any[] = [];
+
     for (const room of allRooms) {
       for (const ratePair of ratePairs) {
         roomRateEntries.push({
@@ -90,29 +92,30 @@ async function seedRoomRates() {
         });
       }
     }
-    
+
     console.log(`Creating ${roomRateEntries.length} room rate entries...`);
-    
+
     // Insert in batches to avoid memory issues
     const batchSize = 1000;
     let totalInserted = 0;
-    
+
     for (let i = 0; i < roomRateEntries.length; i += batchSize) {
       const batch = roomRateEntries.slice(i, i + batchSize);
       await db.insert(roomRates).values(batch);
       totalInserted += batch.length;
-      console.log(`✓ Inserted batch: ${totalInserted}/${roomRateEntries.length} entries`);
+      console.log(
+        `✓ Inserted batch: ${totalInserted}/${roomRateEntries.length} entries`
+      );
     }
-    
+
     console.log("\n🎉 Room rates seeding completed successfully!");
     console.log(`
 Summary:
 - Total rooms: ${allRooms.length}
-- Date range: ${ratePairs[0].date} to ${ratePairs[ratePairs.length - 1].date}
+- Date range: ${ratePairs[0].date} to ${ratePairs.at(-1)?.date}
 - Total entries: ${totalInserted}
-- Price range: $${Math.min(...ratePairs.map(r => r.price))} - $${Math.max(...ratePairs.map(r => r.price))}
+- Price range: $${Math.min(...ratePairs.map((r) => r.price))} - $${Math.max(...ratePairs.map((r) => r.price))}
     `);
-    
   } catch (error) {
     console.error("Error seeding room rates:", error);
     throw error;

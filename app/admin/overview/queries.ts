@@ -1,26 +1,21 @@
+import { count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { count, eq, and, gte, lte, sql } from "drizzle-orm";
-import {
-  companySettings,
-  services,
-  rooms,
-  roomRates,
-} from "@/lib/db/schema";
+import { companySettings, rooms, services } from "@/lib/db/schema";
 
-const client = postgres(process.env.POSTGRES_URL!);
+const client = postgres(process.env.POSTGRES_URL || "");
 const db = drizzle(client);
 
 export async function getHotelOverview() {
   // Get company settings
   const company = await db.select().from(companySettings).limit(1);
-  
+
   // Get all services
   const allServices = await db.select().from(services);
-  
+
   // Get total room count
   const totalRoomsResult = await db.select({ count: count() }).from(rooms);
-  
+
   return {
     company: company[0],
     services: allServices,
@@ -52,17 +47,17 @@ export async function getMonthlyOccupancy() {
 
   return (monthlyData as any).rows.map((row: any) => ({
     month: row.month,
-    totalRooms: parseInt(row.total_rooms),
-    reservedRooms: parseInt(row.reserved_rooms),
-    occupancyRate: parseFloat(row.occupancy_rate),
+    totalRooms: Number.parseInt(row.total_rooms, 10),
+    reservedRooms: Number.parseInt(row.reserved_rooms, 10),
+    occupancyRate: Number.parseFloat(row.occupancy_rate),
   }));
 }
 
 export async function getUpcomingWeekRates() {
   // Get rates for the week of Sep 29 - Oct 5, 2025
-  const startDate = '2025-09-29';
-  const endDate = '2025-10-05';
-  
+  const startDate = "2025-09-29";
+  const endDate = "2025-10-05";
+
   const weekData = await db.execute(sql`
     WITH daily_stats AS (
       SELECT 
@@ -90,10 +85,10 @@ export async function getUpcomingWeekRates() {
   return (weekData as any).rows.map((row: any) => ({
     date: row.day,
     dayName: row.day_name,
-    price: parseFloat(row.price),
-    totalRooms: parseInt(row.total_rooms),
-    reservedRooms: parseInt(row.reserved_rooms),
-    availableRooms: parseInt(row.available_rooms),
-    occupancyRate: parseFloat(row.occupancy_rate),
+    price: Number.parseFloat(row.price),
+    totalRooms: Number.parseInt(row.total_rooms, 10),
+    reservedRooms: Number.parseInt(row.reserved_rooms, 10),
+    availableRooms: Number.parseInt(row.available_rooms, 10),
+    occupancyRate: Number.parseFloat(row.occupancy_rate),
   }));
 }
