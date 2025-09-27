@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
+import { auth } from "@/app/(auth)/auth";
+import { ChatOverlay } from "@/components/chat-overlay";
+import { DataStreamProvider } from "@/components/data-stream-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
+import { generateUUID } from "@/lib/utils";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -48,11 +55,22 @@ const THEME_COLOR_SCRIPT = `\
   updateThemeColor();
 })();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/api/auth/guest");
+  }
+
+  const cookieStore = await cookies();
+  const chatModelFromCookie = cookieStore.get("chat-model");
+  const initialChatModel = chatModelFromCookie?.value ?? DEFAULT_CHAT_MODEL;
+  const chatId = generateUUID();
+
   return (
     <html
       className={`${geist.variable} ${geistMono.variable}`}
@@ -78,8 +96,20 @@ export default function RootLayout({
           disableTransitionOnChange
           enableSystem
         >
-          <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
+          <DataStreamProvider>
+            <SessionProvider session={session}>
+              {children}
+              <ChatOverlay
+                autoResume={false}
+                chatId={chatId}
+                initialChatModel={initialChatModel}
+                initialMessages={[]}
+                initialVisibilityType="private"
+                isReadonly={false}
+              />
+            </SessionProvider>
+            <Toaster position="top-center" />
+          </DataStreamProvider>
         </ThemeProvider>
       </body>
     </html>
