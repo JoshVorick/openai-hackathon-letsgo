@@ -22,7 +22,10 @@
         "noConsole": "off",
 
         /* Needed for generateUUID() */
-        "noBitwiseOperators": "off"
+        "noBitwiseOperators": "off",
+
+        /* Allow array indices as React keys */
+        "noArrayIndexKey": "off"
       },
       "style": {
         /* Allowing magic numbers */

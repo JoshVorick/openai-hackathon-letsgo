@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type MetricCarouselProps = {
@@ -22,8 +22,12 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
   function goTo(delta: number) {
     setIndex((prev) => {
       const next = prev + delta;
-      if (next < 0) return 0;
-      if (next > slides.length - 1) return slides.length - 1;
+      if (next < 0) {
+        return 0;
+      }
+      if (next > slides.length - 1) {
+        return slides.length - 1;
+      }
       return next;
     });
   }
@@ -33,7 +37,9 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
   }
 
   function handleMove(clientX: number) {
-    if (startXRef.current == null) return;
+    if (startXRef.current == null) {
+      return;
+    }
     const deltaX = startXRef.current - clientX;
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       goTo(deltaX > 0 ? 1 : -1);
@@ -49,22 +55,27 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
     <div className={cn("relative", className)}>
       <div
         className="overflow-hidden rounded-3xl bg-white shadow-sm"
-        onTouchStart={(event) => handleStart(event.touches[0]?.clientX ?? 0)}
-        onTouchMove={(event) => handleMove(event.touches[0]?.clientX ?? 0)}
-        onTouchEnd={handleEnd}
         onPointerDown={(event) => handleStart(event.clientX)}
         onPointerMove={(event) => {
-          if (event.buttons === 0) return;
+          if (event.buttons === 0) {
+            return;
+          }
           handleMove(event.clientX);
         }}
         onPointerUp={handleEnd}
+        onTouchEnd={handleEnd}
+        onTouchMove={(event) => handleMove(event.touches[0]?.clientX ?? 0)}
+        onTouchStart={(event) => handleStart(event.touches[0]?.clientX ?? 0)}
       >
         <div
           className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${clampedIndex * 100}%)` }}
         >
           {slides.map((slide, slideIndex) => (
-            <div key={slideIndex} className="w-full shrink-0 px-6 py-6">
+            <div
+              className="w-full shrink-0 px-6 py-6"
+              key={`slide-${slideIndex}`}
+            >
               {slide}
             </div>
           ))}
@@ -74,13 +85,11 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
       <div className="mt-4 flex items-center justify-center gap-2">
         {slides.map((_, dotIndex) => (
           <span
-            key={dotIndex}
             className={cn(
               "h-2.5 w-2.5 rounded-full transition-colors",
-              dotIndex === clampedIndex
-                ? "bg-neutral-900"
-                : "bg-neutral-300"
+              dotIndex === clampedIndex ? "bg-neutral-900" : "bg-neutral-300"
             )}
+            key={`dot-${dotIndex}`}
           />
         ))}
       </div>

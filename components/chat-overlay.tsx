@@ -6,8 +6,8 @@ import { DataStreamHandler } from "@/components/data-stream-handler";
 import { BotIcon } from "@/components/icons";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import type { VisibilityType } from "@/components/visibility-selector";
-import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export type ChatOverlayProps = {
   chatId: string;
@@ -39,7 +39,7 @@ export function ChatOverlay({
         />
       )}
 
-      <div className="fixed bottom-5 right-5 z-[70] flex flex-col items-end gap-4 sm:bottom-6 sm:right-6">
+      <div className="fixed right-5 bottom-5 z-[70] flex flex-col items-end gap-4 sm:right-6 sm:bottom-6">
         <div
           aria-hidden={!isOpen}
           className={cn(
@@ -49,10 +49,10 @@ export function ChatOverlay({
           )}
         >
           <SidebarProvider defaultOpen={false}>
-            <div className="relative flex h-[min(70vh,640px)] w-[min(420px,calc(100vw-3rem))] flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950 max-sm:h-[calc(100vh-5rem)] max-sm:w-[calc(100vw-2rem)]">
+            <div className="relative flex h-[min(70vh,640px)] w-[min(420px,calc(100vw-3rem))] flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl max-sm:h-[calc(100vh-5rem)] max-sm:w-[calc(100vw-2rem)] dark:border-neutral-800 dark:bg-neutral-950">
               <button
                 aria-label="Hide chat"
-                className="absolute right-4 top-4 z-10 rounded-full border border-transparent bg-white/80 px-2 py-1 text-sm font-medium text-neutral-500 shadow-sm transition hover:bg-white hover:text-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                className="absolute top-4 right-4 z-10 rounded-full border border-transparent bg-white/80 px-2 py-1 font-medium text-neutral-500 text-sm shadow-sm transition hover:bg-white hover:text-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-300 dark:hover:bg-neutral-900"
                 onClick={() => setIsOpen(false)}
                 type="button"
               >

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { auth } from "@/app/(auth)/auth";
 import { ChatOverlay } from "@/components/chat-overlay";
 import { DataStreamProvider } from "@/components/data-stream-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import { auth } from "@/app/(auth)/auth";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 
