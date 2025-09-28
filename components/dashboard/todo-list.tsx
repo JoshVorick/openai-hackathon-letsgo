@@ -11,30 +11,28 @@ declare global {
   }
 }
 
-import { Bot, Loader, Mic, MicOff, Plus, Trash2 } from "lucide-react";
+import { Bot, Mic, MicOff, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
-  generateActionSuggestion,
-  type TaskSuggestion,
-} from "@/lib/ai/task-recognition";
-import {
-  type ExecutionResult,
-  simulateAIExecution,
-} from "@/lib/ai/todo-executor";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+type BellhopSuggestion = {
+  summary: string;
+  starterQuery: string;
+};
 
 export type TodoItem = {
   id: string;
   text: string;
   completed: boolean;
-  aiSuggestion?: TaskSuggestion;
-  assignedToAI?: boolean;
-  aiResult?: ExecutionResult;
-  isProcessing?: boolean;
-  processingProgress?: number;
-  processingStatus?: string;
+  aiSuggestion?: BellhopSuggestion;
   createdAt: Date;
 };
 
@@ -86,110 +84,81 @@ export function TodoList() {
     }
   };
 
-  const addTodo = () => {
-    if (newTodo.trim()) {
-      const todo: TodoItem = {
-        id: Date.now().toString(),
-        text: newTodo.trim(),
-        completed: false,
-        createdAt: new Date(),
-      };
+  const fetchBellhopSuggestion = async (
+    text: string
+  ): Promise<BellhopSuggestion | null> => {
+    try {
+      const response = await fetch("/api/todos/evaluate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
 
-      // Check if AI can help with this task
-      const { suggestion } = generateActionSuggestion(newTodo.trim());
-      if (suggestion) {
-        todo.aiSuggestion = suggestion;
+      if (!response.ok) {
+        console.error("Bellhop suggestion request failed", response.status);
+        return null;
       }
 
-      setTodos([...todos, todo]);
-      setNewTodo("");
+      const data: {
+        canHandle: boolean;
+        summary?: string;
+        starterQuery?: string;
+      } = await response.json();
+
+      if (data.canHandle && data.summary && data.starterQuery) {
+        return {
+          summary: data.summary,
+          starterQuery: data.starterQuery,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Unable to evaluate to-do with Bellhop", error);
+      return null;
     }
   };
 
+  const addTodo = async () => {
+    const trimmed = newTodo.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const todo: TodoItem = {
+      id: Date.now().toString(),
+      text: trimmed,
+      completed: false,
+      createdAt: new Date(),
+    };
+
+    setTodos((prev) => [...prev, todo]);
+    setNewTodo("");
+
+    const suggestion = await fetchBellhopSuggestion(trimmed);
+    if (!suggestion) {
+      return;
+    }
+
+    setTodos((prev) =>
+      prev.map((item) =>
+        item.id === todo.id ? { ...item, aiSuggestion: suggestion } : item
+      )
+    );
+  };
+
   const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
+    setTodos((prev) =>
+      prev.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
     );
   };
 
   const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
-  const assignToAI = async (id: string) => {
-    const todo = todos.find((t) => t.id === id);
-    if (!todo || !todo.aiSuggestion) {
-      return;
-    }
-
-    // Mark as processing
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              assignedToAI: true,
-              isProcessing: true,
-              processingProgress: 0,
-              processingStatus: "Starting AI analysis...",
-            }
-          : t
-      )
-    );
-
-    try {
-      // Execute the task with AI
-      const result = await simulateAIExecution(
-        todo.text,
-        todo.aiSuggestion,
-        (progress, status) => {
-          setTodos((prev) =>
-            prev.map((t) =>
-              t.id === id
-                ? {
-                    ...t,
-                    processingProgress: progress,
-                    processingStatus: status,
-                  }
-                : t
-            )
-          );
-        }
-      );
-
-      // Update with results
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                isProcessing: false,
-                aiResult: result,
-                completed: result.success,
-                aiSuggestion: undefined,
-              }
-            : t
-        )
-      );
-    } catch (err) {
-      console.error("Failed to execute AI task:", err);
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                isProcessing: false,
-                aiResult: {
-                  success: false,
-                  message: "Failed to process task",
-                },
-              }
-            : t
-        )
-      );
-    }
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
   const pendingTodos = todos.filter((todo) => !todo.completed);
@@ -224,7 +193,12 @@ export function TodoList() {
             <Input
               className="flex-1 border-white/10 bg-white/5 text-neutral-50 placeholder:text-neutral-400 focus:border-white/20 focus:ring-white/10"
               onChange={(e) => setNewTodo(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addTodo()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void addTodo();
+                }
+              }}
               placeholder="Add a new task..."
               value={newTodo}
             />
@@ -247,7 +221,9 @@ export function TodoList() {
             </Button>
             <Button
               className="border-white/10 bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-neutral-50"
-              onClick={addTodo}
+              onClick={() => {
+                void addTodo();
+              }}
               size="icon"
             >
               <Plus className="h-4 w-4" />
@@ -273,95 +249,9 @@ export function TodoList() {
                     >
                       {todo.text}
                     </p>
-
-                    {todo.isProcessing && (
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center gap-2 text-neutral-400 text-sm">
-                          <Loader className="h-3 w-3 animate-spin" />
-                          <span>{todo.processingStatus}</span>
-                        </div>
-                        <div className="h-1 w-full rounded-full bg-white/10">
-                          <div
-                            className="h-1 rounded-full bg-rose-500 transition-all duration-300"
-                            style={{
-                              width: `${todo.processingProgress || 0}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {todo.assignedToAI && !todo.isProcessing && (
-                      <div className="mt-2 flex items-center gap-2 text-neutral-400 text-sm">
-                        <Bot className="h-3 w-3" />
-                        <span>Completed by AI</span>
-                      </div>
-                    )}
-
-                    {todo.aiResult && !todo.isProcessing && (
-                      <div className="mt-3 space-y-2">
-                        {todo.aiResult.success ? (
-                          <div className="text-sm">
-                            <div className="mb-2 flex items-center gap-1 font-medium text-emerald-400">
-                              <span className="text-emerald-300">✓</span>
-                              Task completed successfully
-                            </div>
-
-                            {todo.aiResult.data && (
-                              <div className="space-y-1 rounded-md bg-white/5 p-3 text-xs">
-                                {todo.aiResult.data.dateRange && (
-                                  <div className="font-medium text-neutral-200">
-                                    📅 {todo.aiResult.data.dateRange}
-                                  </div>
-                                )}
-                                {todo.aiResult.data.currentRate &&
-                                  todo.aiResult.data.newRate && (
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between text-neutral-300">
-                                        <span>Previous rate:</span>
-                                        <span className="font-mono">
-                                          ${todo.aiResult.data.currentRate}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between text-neutral-300">
-                                        <span>New rate:</span>
-                                        <span className="font-medium font-mono">
-                                          ${todo.aiResult.data.newRate}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between text-emerald-400">
-                                        <span>Change:</span>
-                                        <span className="font-mono">
-                                          {todo.aiResult.data.adjustment > 0
-                                            ? "+"
-                                            : ""}
-                                          {todo.aiResult.data.adjustment}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                {todo.aiResult.data.reason && (
-                                  <div className="mt-2 text-neutral-400">
-                                    Reason: {todo.aiResult.data.reason}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1 font-medium text-rose-400">
-                              <span className="text-rose-300">✗</span>
-                              {todo.aiResult.message}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                   <Button
                     className="text-neutral-400 hover:bg-rose-400/10 hover:text-rose-400"
-                    disabled={todo.isProcessing}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -374,30 +264,39 @@ export function TodoList() {
                   </Button>
                 </div>
 
-                {/* AI Suggestion */}
-                {todo.aiSuggestion &&
-                  !todo.assignedToAI &&
-                  !todo.isProcessing && (
-                    <div className="mt-2 ml-6 rounded-md border border-white/10 bg-white/5 p-3">
-                      <div className="flex items-start gap-2">
-                        <Bot className="mt-0.5 h-3 w-3 text-neutral-400" />
-                        <div className="flex-1 space-y-2">
-                          <p className="text-neutral-300 text-sm">
-                            {todo.aiSuggestion.message}
-                          </p>
+                {todo.aiSuggestion && (
+                  <div className="mt-2 ml-6 rounded-md border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-start gap-2">
+                      <Bot className="mt-0.5 h-3 w-3 text-neutral-400" />
+                      <div className="flex-1 space-y-2">
+                        <p className="text-neutral-300 text-sm">
+                          {todo.aiSuggestion.summary}
+                        </p>
 
-                          <Button
-                            className="h-7 border-white/10 bg-white/5 text-neutral-300 text-xs hover:bg-white/10 hover:text-neutral-50"
-                            onClick={() => assignToAI(todo.id)}
-                            size="sm"
-                            variant="outline"
-                          >
-                            Let AI handle this
-                          </Button>
-                        </div>
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                className="h-7 border-white/10 bg-white/5 text-neutral-300 text-xs hover:bg-white/10 hover:text-neutral-50"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                }}
+                                size="sm"
+                                variant="outline"
+                              >
+                                Have Bellhop hop to it
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs text-center text-xs">
+                              {todo.aiSuggestion.starterQuery}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             ))}
 
