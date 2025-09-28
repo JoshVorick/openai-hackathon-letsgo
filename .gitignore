@@ -38,9 +38,8 @@ tsconfig.tsbuildinfo
 .env
 .vercel
 .env*.local
-claude.md
 CLAUDE.md
-agents.md
+AGENTS.md
 
 # Playwright
 /test-results/
