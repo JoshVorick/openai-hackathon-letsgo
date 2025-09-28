@@ -29,7 +29,11 @@ export function ChatOverlay({
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const handleKickoff = () => {
+    const handleKickoff = (event: Event) => {
+      const kickoff = event as CustomEvent<{ openChat?: boolean }>;
+      if (kickoff.detail?.openChat === false) {
+        return;
+      }
       setIsOpen(true);
     };
 

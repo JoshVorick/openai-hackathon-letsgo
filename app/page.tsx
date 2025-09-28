@@ -1,7 +1,6 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 "use client";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import { ArrowRight, ArrowUpRight, ChevronDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";

@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-import { Bot, Mic, MicOff, Trash2 } from "lucide-react";
+import { Bot, Loader, Mic, MicOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,11 +20,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  generateActionSuggestion,
+  type TaskSuggestion,
+} from "@/lib/ai/task-recognition";
+import {
+  type ExecutionResult,
+  simulateAIExecution,
+} from "@/lib/ai/todo-executor";
 import { cn } from "@/lib/utils";
 
 type BellhopSuggestion = {
   summary: string;
   starterQuery: string;
+  taskSuggestion?: TaskSuggestion | null;
 };
 
 export type TodoItem = {
@@ -36,11 +45,7 @@ export type TodoItem = {
   isProcessing?: boolean;
   processingStatus?: string;
   processingProgress?: number;
-  aiResult?: {
-    success: boolean;
-    message: string;
-    data?: any;
-  };
+  aiResult?: ExecutionResult;
   createdAt: Date;
 };
 
@@ -115,9 +120,11 @@ export function TodoList() {
       } = await response.json();
 
       if (data.canHandle && data.summary && data.starterQuery) {
+        const { suggestion: taskSuggestion } = generateActionSuggestion(text);
         return {
           summary: data.summary,
           starterQuery: data.starterQuery,
+          taskSuggestion,
         };
       }
 
@@ -166,6 +173,122 @@ export function TodoList() {
 
   const deleteTodo = (id: string) => {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  const startBellhopTask = async (id: string) => {
+    const todo = todos.find((item) => item.id === id);
+    if (!todo || !todo.aiSuggestion || todo.isProcessing) {
+      return;
+    }
+
+    setTodos((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              assignedToAI: true,
+              isProcessing: true,
+              processingProgress: 5,
+              processingStatus: "Coordinating with Bellhop…",
+              aiResult: undefined,
+            }
+          : item
+      )
+    );
+
+    const taskSuggestion = todo.aiSuggestion.taskSuggestion;
+
+    try {
+      let result: ExecutionResult;
+
+      if (taskSuggestion) {
+        result = await simulateAIExecution(
+          todo.text,
+          taskSuggestion,
+          (progress, status) => {
+            setTodos((prev) =>
+              prev.map((item) =>
+                item.id === id
+                  ? {
+                      ...item,
+                      processingProgress: Math.min(Math.round(progress), 100),
+                      processingStatus: status,
+                    }
+                  : item
+              )
+            );
+          }
+        );
+      } else {
+        const fallbackSteps = [
+          "Scoping the task details…",
+          "Reviewing recent hotel data…",
+          "Applying SOP playbooks…",
+          "Finalizing Bellhop updates…",
+        ];
+
+        for (let index = 0; index < fallbackSteps.length; index += 1) {
+          const status = fallbackSteps[index];
+          const progress = Math.round(
+            ((index + 1) / fallbackSteps.length) * 100
+          );
+
+          setTodos((prev) =>
+            prev.map((item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    processingProgress: progress,
+                    processingStatus: status,
+                  }
+                : item
+            )
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        result = {
+          success: true,
+          message: todo.aiSuggestion.summary,
+        };
+      }
+
+      setTodos((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                isProcessing: false,
+                processingProgress: 100,
+                processingStatus: undefined,
+                aiResult: result,
+                completed: result.success ? true : item.completed,
+                aiSuggestion: undefined,
+              }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to simulate Bellhop execution", error);
+      setTodos((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                assignedToAI: false,
+                isProcessing: false,
+                processingStatus: undefined,
+                aiResult: {
+                  success: false,
+                  message:
+                    "Bellhop ran into an issue while handling this task.",
+                },
+              }
+            : item
+        )
+      );
+    }
   };
 
   const completedTodos = todos.filter((todo) => todo.completed);
@@ -267,38 +390,48 @@ export function TodoList() {
                             {todo.aiSuggestion.summary}
                           </p>
 
-                          <TooltipProvider delayDuration={200}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  className="h-7 rounded-full border border-[#3A2A1F] bg-[#24170F] px-3 text-[#F4E9DA] text-xs hover:bg-[#2F2015]"
-                                  onClick={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (typeof window !== "undefined") {
-                                      window.dispatchEvent(
-                                        new CustomEvent("bellhop:kickoff", {
-                                          detail: {
-                                            prompt:
-                                              todo.aiSuggestion?.starterQuery || "",
-                                            source: `todo-${todo.id}`,
-                                          },
-                                        })
-                                      );
-                                    }
-                                  }}
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  Have Bellhop hop to it
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs text-center text-xs">
-                                {todo.aiSuggestion.starterQuery}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          {!todo.assignedToAI && !todo.isProcessing ? (
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    className="h-7 rounded-full border border-[#3A2A1F] bg-[#24170F] px-3 text-[#F4E9DA] text-xs hover:bg-[#2F2015]"
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      startBellhopTask(todo.id);
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                  >
+                                    Have Bellhop hop to it
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs text-center text-xs">
+                                  {todo.aiSuggestion.starterQuery}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : null}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {todo.isProcessing && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2 text-[#8F7F71] text-sm">
+                        <Loader className="h-3 w-3 animate-spin" />
+                        <span>
+                          {todo.processingStatus ??
+                            "Bellhop is working on this."}
+                        </span>
+                      </div>
+                      <div className="h-1 w-full rounded-full bg-[#2D221B]">
+                        <div
+                          className="h-1 rounded-full bg-[#FF922C] transition-all duration-300"
+                          style={{ width: `${todo.processingProgress ?? 0}%` }}
+                        />
                       </div>
                     </div>
                   )}
