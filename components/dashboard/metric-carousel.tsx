@@ -84,12 +84,15 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
 
       <div className="mt-6 flex items-center justify-center gap-2">
         {slides.map((_, dotIndex) => (
-          <span
+          <button
+            aria-label={`Go to slide ${dotIndex + 1}`}
             className={cn(
-              "h-2 w-5 rounded-full transition-all",
+              "h-2 w-5 cursor-pointer rounded-full transition-all hover:bg-rose-400",
               dotIndex === clampedIndex ? "bg-rose-500" : "bg-neutral-700"
             )}
             key={`dot-${dotIndex}`}
+            onClick={() => setIndex(dotIndex)}
+            type="button"
           />
         ))}
       </div>

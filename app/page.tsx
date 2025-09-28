@@ -1,6 +1,8 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 import { ArrowRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
+import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
 import { BellhopMark } from "@/components/icons";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
@@ -187,6 +189,72 @@ export default async function DashboardPage() {
             ))}
           </div>
         </details>
+
+        <MetricCarousel
+          className="mt-8"
+          slides={[
+            <CompetitorPricingChart
+              className=""
+              data={snapshot.competitorPricing}
+              key="competitor-pricing"
+            />,
+            <div className="space-y-6" key="occupancy">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neutral-400 text-xs uppercase tracking-widest">
+                    Outlook
+                  </p>
+                  <h2 className="mt-1 font-semibold text-neutral-50 text-xl">
+                    Occupancy pacing vs last year
+                  </h2>
+                </div>
+                <span className="font-medium text-neutral-400 text-xs">
+                  Forecast vs LY
+                </span>
+              </div>
+              <div className="grid grid-cols-7 gap-3">
+                {snapshot.occupancy.map((point) => {
+                  const date = new Date(point.date);
+                  const occupancy = point.occupancy;
+                  const lastYear = point.lastYearOccupancy;
+                  const delta = occupancy - lastYear;
+
+                  return (
+                    <div
+                      className="flex flex-col items-center gap-2"
+                      key={point.date}
+                    >
+                      <div className="flex h-32 w-8 items-end justify-center gap-[5px] rounded-full bg-white/5 p-1">
+                        <div
+                          className="w-2 rounded-full bg-rose-500"
+                          style={{
+                            height: `${occupancy}%`,
+                            maxHeight: "100%",
+                          }}
+                        />
+                        <div
+                          className="w-2 rounded-full bg-neutral-700"
+                          style={{
+                            height: `${lastYear}%`,
+                            maxHeight: "100%",
+                          }}
+                        />
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-neutral-200 text-xs">
+                          {occupancy}%
+                        </div>
+                        <div className="text-neutral-500 text-[10px]">
+                          {weekdayFormatter.format(date)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>,
+          ]}
+        />
 
         <section className="mt-10">
           <h2 className="text-center font-medium text-[#8F7F71] text-sm">

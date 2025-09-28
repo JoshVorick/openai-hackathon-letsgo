@@ -4,6 +4,15 @@ export type OccupancyPoint = {
   lastYearOccupancy: number;
 };
 
+export type CompetitorPricePoint = {
+  date: string;
+  yourPrice: number;
+  competitor1: number;
+  competitor2: number;
+  competitor3: number;
+  competitor4: number;
+};
+
 export type Opportunity = {
   id: string;
   title: string;
@@ -17,6 +26,7 @@ export type HotelSnapshot = {
   address: string;
   optimizationScore: number;
   occupancy: OccupancyPoint[];
+  competitorPricing: CompetitorPricePoint[];
   opportunities: Opportunity[];
 };
 
@@ -34,11 +44,56 @@ export function getMockHotelSnapshot(): HotelSnapshot {
     };
   });
 
+  // Generate competitor pricing data for next 90 days
+  const competitorPricing: CompetitorPricePoint[] = Array.from(
+    { length: 90 },
+    (_, index) => {
+      const current = new Date(today);
+      current.setDate(today.getDate() + index);
+
+      // Base prices with some variation
+      const baseYourPrice = 320;
+      const baseComp1 = 380; // Higher-end competitor
+      const baseComp2 = 350; // Similar level
+      const baseComp3 = 290; // Budget competitor
+      const baseComp4 = 410; // Luxury competitor
+
+      // Add seasonal and day-of-week variations
+      const dayOfWeek = current.getDay();
+      const isWeekend = dayOfWeek === 5 || dayOfWeek === 6; // Friday/Saturday
+      const weekendMultiplier = isWeekend ? 1.15 : 1.0;
+
+      // Add some randomness and trends
+      const trendFactor = 1 + index / 360; // Slight upward trend
+      const randomVariation = 0.9 + Math.random() * 0.2; // ±10% variation
+
+      return {
+        date: current.toISOString(),
+        yourPrice: Math.round(
+          baseYourPrice * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor1: Math.round(
+          baseComp1 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor2: Math.round(
+          baseComp2 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor3: Math.round(
+          baseComp3 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor4: Math.round(
+          baseComp4 * weekendMultiplier * trendFactor * randomVariation
+        ),
+      };
+    }
+  );
+
   return {
     name: "The Ned",
     address: "1170 Broadway, New York, NY",
     optimizationScore: 0.25,
     occupancy,
+    competitorPricing,
     opportunities: [
       {
         id: "hackathon-event",
