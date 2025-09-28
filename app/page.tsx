@@ -129,54 +129,51 @@ export default function DashboardPage() {
               key="competitor-pricing"
             />,
             <div className="space-y-6" key="occupancy">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-neutral-400 text-xs uppercase tracking-widest">
-                    Outlook
-                  </p>
-                  <h2 className="mt-1 font-semibold text-neutral-50 text-xl">
-                    Occupancy pacing vs last year
-                  </h2>
-                </div>
-                <span className="font-medium text-neutral-400 text-xs">
-                  Forecast vs LY
-                </span>
-              </div>
-              <div className="grid grid-cols-7 gap-3">
-                {snapshot.occupancy.map((point) => {
-                  const date = new Date(point.date);
-                  const pointOccupancy = point.occupancy;
-                  const lastYear = point.lastYearOccupancy;
-
+              <h2 className="text-center font-medium text-[#8F7F71] text-sm">
+                Next week's occupancy
+              </h2>
+              <div className="mt-5 flex items-end justify-between gap-2 rounded-[30px] border border-[#2F241C] bg-[#110D0A] px-5 py-6 shadow-[0_26px_48px_rgba(0,0,0,0.45)]">
+                {snapshot.occupancy.map((point, index) => {
+                  const current = Math.max(0, Math.min(point.occupancy, 100));
+                  const lastYearValue = Math.max(
+                    0,
+                    Math.min(point.lastYearOccupancy, 100)
+                  );
+                  const today = new Date();
+                  const labelDate = new Date(today);
+                  labelDate.setDate(today.getDate() + index);
                   return (
                     <div
                       className="flex flex-col items-center gap-2"
                       key={point.date}
                     >
-                      <div className="flex h-32 w-8 items-end justify-center gap-[5px] rounded-full bg-white/5 p-1">
-                        <div
-                          className="w-2 rounded-full bg-rose-500"
-                          style={{
-                            height: `${pointOccupancy}%`,
-                            maxHeight: "100%",
-                          }}
+                      <div className="relative flex h-32 w-6 items-end justify-center">
+                        <span
+                          aria-hidden
+                          className="absolute bottom-0 w-full rounded-full bg-[#362A22]"
+                          style={{ height: `${lastYearValue}%`, opacity: 0.55 }}
                         />
-                        <div
-                          className="w-2 rounded-full bg-neutral-700"
+                        <span
+                          className="relative z-10 block w-[70%] rounded-full"
                           style={{
-                            height: `${lastYear}%`,
+                            height: `${current}%`,
                             maxHeight: "100%",
+                            backgroundColor: getBarColor(current),
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                           }}
                         />
                       </div>
-                      <div className="text-center">
-                        <div className="font-medium text-neutral-200 text-xs">
-                          {pointOccupancy}%
-                        </div>
-                        <div className="text-[10px] text-neutral-500">
-                          {weekdayFormatter.format(date)}
-                        </div>
+                      <div className="flex flex-col items-center leading-none">
+                        <span className="font-semibold text-[#F7E8D8] text-xs">
+                          {Math.round(current)}%
+                        </span>
+                        <span className="text-[#8B7B6D] text-[10px]">
+                          LY {Math.round(lastYearValue)}%
+                        </span>
                       </div>
+                      <span className="mt-1 font-medium text-[#8B7B6D] text-xs">
+                        {weekdayFormatter.format(labelDate)}
+                      </span>
                     </div>
                   );
                 })}
@@ -184,58 +181,6 @@ export default function DashboardPage() {
             </div>,
           ]}
         />
-
-        <section className="mt-10">
-          <h2 className="text-center font-medium text-[#8F7F71] text-sm">
-            Next week's occupancy
-          </h2>
-          <div className="mt-5 flex items-end justify-between gap-2 rounded-[30px] border border-[#2F241C] bg-[#110D0A] px-5 py-6 shadow-[0_26px_48px_rgba(0,0,0,0.45)]">
-            {snapshot.occupancy.map((point, index) => {
-              const current = Math.max(0, Math.min(point.occupancy, 100));
-              const lastYearValue = Math.max(
-                0,
-                Math.min(point.lastYearOccupancy, 100)
-              );
-              const today = new Date();
-              const labelDate = new Date(today);
-              labelDate.setDate(today.getDate() + index);
-              return (
-                <div
-                  className="flex flex-col items-center gap-2"
-                  key={point.date}
-                >
-                  <div className="relative flex h-32 w-8 items-end justify-center">
-                    <span
-                      aria-hidden
-                      className="absolute bottom-0 w-full rounded-full bg-[#362A22]"
-                      style={{ height: `${lastYearValue}%`, opacity: 0.55 }}
-                    />
-                    <span
-                      className="relative z-10 block w-[70%] rounded-full"
-                      style={{
-                        height: `${current}%`,
-                        maxHeight: "100%",
-                        backgroundColor: getBarColor(current),
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                      }}
-                    />
-                  </div>
-                  <div className="flex flex-col items-center leading-none">
-                    <span className="font-semibold text-[#F7E8D8] text-xs">
-                      {Math.round(current)}%
-                    </span>
-                    <span className="text-[#8B7B6D] text-[10px]">
-                      LY {Math.round(lastYearValue)}%
-                    </span>
-                  </div>
-                  <span className="mt-1 font-medium text-[#8B7B6D] text-xs">
-                    {weekdayFormatter.format(labelDate)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
         <TodoList />
       </div>
