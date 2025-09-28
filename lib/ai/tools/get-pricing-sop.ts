@@ -5,6 +5,7 @@ export const getPricingSop = tool({
   description:
     "Retrieve the hotel's pricing standard operating procedure as Markdown",
   inputSchema: z.object({}).default({}).describe("No arguments required"),
+  // biome-ignore lint/suspicious/useAwait: <explanation>
   execute: async () => {
     const markdown = `# Pricing Strategy SOP
 
