@@ -46,6 +46,147 @@ type RevenueComparisonChartProps = {
   className?: string;
 };
 
+const CustomTooltip = ({ active, payload, label, formatValue }: any) => {
+  if (active && payload && payload.length) {
+    const current =
+      payload.find((p: any) => p.dataKey === "currentYear")?.value || 0;
+    const last =
+      payload.find((p: any) => p.dataKey === "lastYear")?.value || 0;
+    const difference = current - last;
+    const percentChange = last > 0 ? (difference / last) * 100 : 0;
+
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+        <p className="font-medium text-gray-900">{label}</p>
+        <div className="mt-2 space-y-1">
+          <p className="text-blue-600">
+            This Year:{" "}
+            <span className="font-semibold">{formatValue(current)}</span>
+          </p>
+          <p className="text-gray-600">
+            Last Year:{" "}
+            <span className="font-semibold">{formatValue(last)}</span>
+          </p>
+          <p
+            className={`font-semibold ${percentChange >= 0 ? "text-green-600" : "text-red-600"}`}
+          >
+            Change: {percentChange >= 0 ? "+" : ""}
+            {percentChange.toFixed(1)}% ({percentChange >= 0 ? "+" : ""}
+            {formatValue(difference)})
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const BarChartComponent = ({ data, metric, formatValue }: any) => (
+  <ResponsiveContainer height={200} width="100%">
+    <BarChart
+      data={data}
+      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+    >
+      <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
+      <XAxis
+        className="text-gray-600"
+        dataKey="date"
+        fontSize={12}
+        tickFormatter={(value) => {
+          const date = new Date(value);
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }}
+      />
+      <YAxis
+        className="text-gray-600"
+        fontSize={12}
+        tickFormatter={(value) => {
+          if (
+            metric === "revenue" ||
+            metric === "adr" ||
+            metric === "revpar"
+          ) {
+            return `$${(value / 1000).toFixed(0)}K`;
+          }
+          return formatValue(value);
+        }}
+      />
+      <Tooltip content={<CustomTooltip formatValue={formatValue} />} />
+      <Bar
+        dataKey="currentYear"
+        fill="#3b82f6"
+        name="This Year"
+        radius={[2, 2, 0, 0]}
+      />
+      <Bar
+        dataKey="lastYear"
+        fill="#94a3b8"
+        name="Last Year"
+        radius={[2, 2, 0, 0]}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const LineChartComponent = ({ data, metric, formatValue }: any) => (
+  <ResponsiveContainer height={200} width="100%">
+    <LineChart
+      data={data}
+      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+    >
+      <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
+      <XAxis
+        className="text-gray-600"
+        dataKey="date"
+        fontSize={12}
+        tickFormatter={(value) => {
+          const date = new Date(value);
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }}
+      />
+      <YAxis
+        className="text-gray-600"
+        fontSize={12}
+        tickFormatter={(value) => {
+          if (
+            metric === "revenue" ||
+            metric === "adr" ||
+            metric === "revpar"
+          ) {
+            return `$${(value / 1000).toFixed(0)}K`;
+          }
+          return formatValue(value);
+        }}
+      />
+      <Tooltip content={<CustomTooltip formatValue={formatValue} />} />
+      <Line
+        activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
+        dataKey="currentYear"
+        dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+        name="This Year"
+        stroke="#3b82f6"
+        strokeWidth={3}
+        type="monotone"
+      />
+      <Line
+        dataKey="lastYear"
+        dot={{ fill: "#94a3b8", strokeWidth: 2, r: 3 }}
+        name="Last Year"
+        stroke="#94a3b8"
+        strokeDasharray="5 5"
+        strokeWidth={2}
+        type="monotone"
+      />
+    </LineChart>
+  </ResponsiveContainer>
+);
+
 export function RevenueComparisonChart({
   data,
   title,
@@ -93,17 +234,17 @@ export function RevenueComparisonChart({
   };
 
   const calculateTotalChange = () => {
-    const totalCurrent = data.reduce(
+    const currentTotal = data.reduce(
       (sum, point) => sum + point.currentYear,
       0
     );
-    const totalLast = data.reduce((sum, point) => sum + point.lastYear, 0);
-    const change = ((totalCurrent - totalLast) / totalLast) * 100;
+    const lastTotal = data.reduce((sum, point) => sum + point.lastYear, 0);
+    const changeValue = ((currentTotal - lastTotal) / lastTotal) * 100;
     return {
-      change,
-      isPositive: change >= 0,
-      totalCurrent,
-      totalLast,
+      change: changeValue,
+      isPositive: changeValue >= 0,
+      totalCurrent: currentTotal,
+      totalLast: lastTotal,
     };
   };
 
@@ -146,7 +287,7 @@ export function RevenueComparisonChart({
   };
 
   const BarChartComponent = () => (
-    <ResponsiveContainer height={350} width="100%">
+    <ResponsiveContainer height={300} width="100%">
       <BarChart
         data={data}
         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -196,7 +337,7 @@ export function RevenueComparisonChart({
   );
 
   const LineChartComponent = () => (
-    <ResponsiveContainer height={350} width="100%">
+    <ResponsiveContainer height={300} width="100%">
       <LineChart
         data={data}
         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -252,19 +393,21 @@ export function RevenueComparisonChart({
   );
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+    <Card className={`w-full max-w-full ${className}`}>
+      <CardHeader className="px-3 py-3">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-2 text-base">
               {chartType === "bar" ? (
-                <BarChart3 className="h-5 w-5 text-blue-600" />
+                <BarChart3 className="h-4 w-4 text-blue-600" />
               ) : (
-                <LineChartIcon className="h-5 w-5 text-blue-600" />
+                <LineChartIcon className="h-4 w-4 text-blue-600" />
               )}
-              {title}
+              <span className="truncate">{title}</span>
             </CardTitle>
-            {subtitle && <CardDescription>{subtitle}</CardDescription>}
+            {subtitle && (
+              <CardDescription className="text-xs">{subtitle}</CardDescription>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -285,7 +428,7 @@ export function RevenueComparisonChart({
           </div>
         </div>
 
-        <div className="flex gap-6 text-gray-600 text-sm">
+        <div className="flex flex-col gap-1 text-gray-600 text-xs md:flex-row md:gap-4">
           <div>
             <span className="font-medium text-blue-600">This Year:</span>{" "}
             {formatValue(totalCurrent)}
@@ -297,7 +440,7 @@ export function RevenueComparisonChart({
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="px-3 pb-3">
         <Tabs className="w-full" defaultValue={chartType}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger className="flex items-center gap-2" value="bar">

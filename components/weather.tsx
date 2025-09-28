@@ -267,7 +267,7 @@ export function Weather({
   return (
     <div
       className={cx(
-        "skeleton-bg flex max-w-[500px] flex-col gap-4 rounded-2xl p-4",
+        "skeleton-bg flex w-full max-w-full flex-col gap-3 rounded-xl p-3",
         {
           "bg-blue-400": isDay,
         },
@@ -289,13 +289,13 @@ export function Weather({
               }
             )}
           />
-          <div className="font-medium text-4xl text-blue-50">
+          <div className="font-medium text-2xl text-blue-50 md:text-3xl">
             {n(weatherAtLocation.current.temperature_2m)}
             {weatherAtLocation.current_units.temperature_2m}
           </div>
         </div>
 
-        <div className="text-blue-50">{`H:${n(currentHigh)}° L:${n(currentLow)}°`}</div>
+        <div className="text-blue-50 text-sm">{`H:${n(currentHigh)}° L:${n(currentLow)}°`}</div>
       </div>
 
       <div className="flex flex-row justify-between">
@@ -306,7 +306,7 @@ export function Weather({
             </div>
             <div
               className={cx(
-                "skeleton-div size-6 rounded-full",
+                "skeleton-div size-4 rounded-full md:size-5",
                 {
                   "bg-yellow-300": isDay,
                 },
@@ -315,7 +315,7 @@ export function Weather({
                 }
               )}
             />
-            <div className="text-blue-50 text-sm">
+            <div className="text-blue-50 text-xs">
               {n(displayTemperatures[index])}
               {weatherAtLocation.hourly_units.temperature_2m}
             </div>

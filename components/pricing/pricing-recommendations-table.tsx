@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  CheckCircle,
-  TrendingUp,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -126,237 +122,90 @@ export function PricingRecommendationsTable({
     }).format(amount);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Pricing Optimization Opportunities
+    <Card className="w-full max-w-full">
+      <CardHeader className="px-3 py-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <TrendingUp className="h-4 w-4" />
+          Pricing Opportunities
         </CardTitle>
-        <CardDescription>
-          Action-ready pricing recommendations based on market analysis and
-          occupancy data
+        <CardDescription className="text-xs">
+          Action-ready recommendations based on market analysis
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Room Type</TableHead>
-                <TableHead>Current Rate</TableHead>
-                <TableHead>Recommended Rate</TableHead>
-                <TableHead>Change</TableHead>
-                <TableHead>Revenue Impact</TableHead>
-                <TableHead>Confidence</TableHead>
-                <TableHead>Risk</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recommendations.map((recommendation) => (
-                <TableRow key={recommendation.id}>
-                  <TableCell className="font-medium">
-                    {recommendation.roomType}
-                  </TableCell>
-                  <TableCell>
-                    {formatCurrency(recommendation.currentRate)}
-                  </TableCell>
-                  <TableCell className="font-semibold text-green-600">
-                    {formatCurrency(recommendation.recommendedRate)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                      <span className="font-medium text-green-600">
-                        +{formatCurrency(recommendation.increase)}(
-                        {recommendation.increasePercentage.toFixed(1)}%)
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {recommendation.projectedRevenue.weekly && (
-                        <div className="font-medium text-green-600">
-                          {recommendation.projectedRevenue.weekly}/week
-                        </div>
-                      )}
-                      {recommendation.projectedRevenue.monthly && (
-                        <div className="text-muted-foreground">
-                          {recommendation.projectedRevenue.monthly}/month
-                        </div>
-                      )}
-                      {recommendation.projectedRevenue.event && (
-                        <div className="font-medium text-blue-600">
-                          {recommendation.projectedRevenue.event} (event)
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <Progress
-                        className="h-2 w-16"
-                        value={recommendation.confidence * 100}
-                      />
-                      <span className="text-muted-foreground text-xs">
-                        {(recommendation.confidence * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={getRiskBadgeColor(recommendation.riskLevel)}
+      <CardContent className="px-2 pb-2">
+        {/* Compact Card View - Always shown in chat context */}
+        <div className="space-y-2">
+          {recommendations.map((rec) => (
+            <div key={rec.id} className="rounded border bg-gray-50 p-2">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium text-sm truncate">{rec.roomType}</span>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      className="h-6 w-12 bg-green-600 p-0 text-xs hover:bg-green-700"
+                      disabled={executingActions.has(rec.id) || loading}
+                      size="sm"
                     >
-                      {recommendation.riskLevel}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={getPriorityBadgeColor(recommendation.priority)}
-                    >
-                      {recommendation.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          className="bg-green-600 hover:bg-green-700"
-                          disabled={
-                            executingActions.has(recommendation.id) || loading
-                          }
-                          size="sm"
-                        >
-                          {executingActions.has(recommendation.id)
-                            ? "Executing..."
-                            : "Execute Change"}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="max-w-2xl">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="flex items-center gap-2">
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                            Confirm Rate Change
-                          </AlertDialogTitle>
-                          <AlertDialogDescription asChild>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <strong>Room Type:</strong>{" "}
-                                  {recommendation.roomType}
-                                </div>
-                                <div>
-                                  <strong>Rate Change:</strong>{" "}
-                                  {formatCurrency(recommendation.currentRate)} →{" "}
-                                  {formatCurrency(
-                                    recommendation.recommendedRate
-                                  )}
-                                </div>
-                                <div>
-                                  <strong>Increase:</strong> +
-                                  {formatCurrency(recommendation.increase)} (
-                                  {recommendation.increasePercentage.toFixed(1)}
-                                  %)
-                                </div>
-                                <div>
-                                  <strong>Implementation:</strong>{" "}
-                                  {recommendation.executionPlan.implementation}
-                                </div>
-                              </div>
-
-                              <div className="rounded-lg bg-blue-50 p-3">
-                                <p className="font-medium text-blue-900">
-                                  Reasoning:
-                                </p>
-                                <p className="text-blue-800 text-sm">
-                                  {recommendation.reasoning}
-                                </p>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <strong>Market Position:</strong>
-                                  <p className="text-muted-foreground">
-                                    Currently $
-                                    {
-                                      recommendation.competitorComparison
-                                        .marketAverage
-                                    }{" "}
-                                    market avg
-                                  </p>
-                                  <p className="text-green-600">
-                                    After change:{" "}
-                                    {recommendation.competitorComparison.positionAfterChange.replace(
-                                      /_/g,
-                                      " "
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <strong>Monitoring Plan:</strong>
-                                  <p className="text-muted-foreground">
-                                    {recommendation.executionPlan.monitoring.replace(
-                                      /_/g,
-                                      " "
-                                    )}
-                                  </p>
-                                  <p className="text-muted-foreground">
-                                    Duration:{" "}
-                                    {recommendation.executionPlan.duration.replace(
-                                      /_/g,
-                                      " "
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {recommendation.riskLevel !== "low" && (
-                                <div className="flex items-start gap-2 rounded-lg bg-amber-50 p-3">
-                                  <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600" />
-                                  <div>
-                                    <p className="font-medium text-amber-900">
-                                      Risk Assessment:{" "}
-                                      {recommendation.riskLevel}
-                                    </p>
-                                    <p className="text-amber-800 text-sm">
-                                      Monitor booking pace closely after
-                                      implementation. Rates can be adjusted if
-                                      needed.
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleExecuteAction(recommendation)}
-                          >
-                            Execute Rate Change
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                      {executingActions.has(rec.id) ? "..." : "Execute"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-sm">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-base">Confirm Rate Change</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Room:</strong> {rec.roomType}</div>
+                          <div><strong>Change:</strong> ${rec.currentRate} → ${rec.recommendedRate}</div>
+                          <div><strong>Increase:</strong> +{rec.increasePercentage.toFixed(1)}%</div>
+                          <div className="text-blue-700">{rec.reasoning}</div>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => handleExecuteAction(rec)}
+                      >
+                        Execute
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-600">Current:</span> <span className="font-medium">${rec.currentRate}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Target:</span> <span className="font-medium text-green-600">${rec.recommendedRate}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Increase:</span> <span className="font-medium text-green-600">+{rec.increasePercentage.toFixed(0)}%</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Confidence:</span> <span className="font-medium">{(rec.confidence * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+              <div className="mt-2 text-xs">
+                <span className="text-gray-600">Revenue:</span>
+                <span className="ml-1 font-medium text-green-600">
+                  {rec.projectedRevenue.weekly?.replace('/week', '/wk') ||
+                   rec.projectedRevenue.monthly?.replace('/month', '/mo') ||
+                   rec.projectedRevenue.event}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         {recommendations.length === 0 && !loading && (
-          <div className="py-8 text-center text-muted-foreground">
-            <TrendingUp className="mx-auto mb-4 h-12 w-12 opacity-50" />
-            <p>No pricing opportunities identified at this time.</p>
-            <p className="text-sm">
-              Check back later or adjust your analysis parameters.
-            </p>
+          <div className="py-4 text-center text-muted-foreground">
+            <TrendingUp className="mx-auto mb-2 h-8 w-8 opacity-50" />
+            <p className="text-xs">No pricing opportunities found.</p>
           </div>
         )}
+
       </CardContent>
     </Card>
   );
