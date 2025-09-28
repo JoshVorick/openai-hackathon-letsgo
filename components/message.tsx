@@ -212,7 +212,10 @@ const PurePreviewMessage = ({
                   : undefined;
 
               const noDataMessage = (
-                <div className="space-y-1 text-sm">
+                <div
+                  className="space-y-1 text-sm"
+                  key={`no-data-${toolCallId}`}
+                >
                   <p className="font-medium">
                     No occupancy data returned for this range.
                   </p>

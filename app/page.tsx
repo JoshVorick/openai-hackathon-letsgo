@@ -5,8 +5,8 @@ import Link from "next/link";
 import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
-import { Button } from "@/components/ui/button";
 import { BellhopMark } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
@@ -192,7 +192,10 @@ export default function DashboardPage() {
           <div className="mt-5 flex items-end justify-between gap-2 rounded-[30px] border border-[#2F241C] bg-[#110D0A] px-5 py-6 shadow-[0_26px_48px_rgba(0,0,0,0.45)]">
             {snapshot.occupancy.map((point, index) => {
               const current = Math.max(0, Math.min(point.occupancy, 100));
-              const lastYearValue = Math.max(0, Math.min(point.lastYearOccupancy, 100));
+              const lastYearValue = Math.max(
+                0,
+                Math.min(point.lastYearOccupancy, 100)
+              );
               const today = new Date();
               const labelDate = new Date(today);
               labelDate.setDate(today.getDate() + index);
