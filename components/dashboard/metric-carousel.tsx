@@ -87,9 +87,7 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
           <span
             className={cn(
               "h-2 w-5 rounded-full transition-all",
-              dotIndex === clampedIndex
-                ? "bg-rose-500"
-                : "bg-neutral-700"
+              dotIndex === clampedIndex ? "bg-rose-500" : "bg-neutral-700"
             )}
             key={`dot-${dotIndex}`}
           />
