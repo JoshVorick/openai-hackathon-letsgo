@@ -90,8 +90,8 @@ export function CompetitorPricingChart({
           <YAxis
             axisLine={false}
             domain={[200, 500]}
-            tickLine={false}
             tick={false}
+            tickLine={false}
           />
           <XAxis
             axisLine={false}
@@ -159,7 +159,6 @@ export function CompetitorPricingChart({
           />
         </LineChart>
       </ChartContainer>
-
     </div>
   );
 }
