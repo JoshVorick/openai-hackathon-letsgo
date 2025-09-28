@@ -2,7 +2,6 @@
 import { ArrowRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { TodoList } from "@/components/dashboard/todo-list";
-import { TaskBoard } from "@/components/dashboard/your-todos";
 import { BellhopMark } from "@/components/icons";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
 
@@ -138,27 +137,9 @@ export default async function DashboardPage() {
 
   const occupancy = await fetchWeeklyOccupancy(range, fallbackOccupancy);
 
-  const yourTodo = snapshot.opportunities[0];
-  const initialUserTodos = yourTodo
-    ? [
-        {
-          id: yourTodo.id,
-          title: yourTodo.title,
-          href: `/opportunities/${yourTodo.id}`,
-        },
-      ]
-    : [];
-  const initialBellhopTodos = snapshot.opportunities
-    .filter((opportunity) => opportunity.id !== yourTodo?.id)
-    .map((opportunity) => ({
-      id: opportunity.id,
-      title: opportunity.title,
-      href: `/opportunities/${opportunity.id}`,
-    }));
-
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
-      <div className="mx-auto flex min-h-screen w-full max-w-sm flex-col px-6 pt-10 pb-28">
+      <div className="mx-auto flex min-h-screen w-full max-w-sm flex-col px-3 pt-10 pb-28 sm:px-4">
         <header className="flex justify-start">
           <BellhopMark className="h-6 w-6 text-[#F4EDE5]" />
         </header>
@@ -260,11 +241,6 @@ export default async function DashboardPage() {
             })}
           </div>
         </section>
-
-        <TaskBoard
-          initialBellhopTodos={initialBellhopTodos}
-          initialUserTodos={initialUserTodos}
-        />
 
         <TodoList />
       </div>

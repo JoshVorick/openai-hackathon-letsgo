@@ -11,10 +11,9 @@ declare global {
   }
 }
 
-import { Bot, Loader, Mic, MicOff, Plus, Trash2 } from "lucide-react";
+import { Bot, Loader, Mic, MicOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   generateActionSuggestion,
   type TaskSuggestion,
@@ -42,7 +41,6 @@ export function TodoList() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
   const recognitionRef = useRef<any | null>(null);
 
   // Voice recognition setup
@@ -192,231 +190,196 @@ export function TodoList() {
     }
   };
 
-  const pendingTodos = todos.filter((todo) => !todo.completed);
   const completedTodos = todos.filter((todo) => todo.completed);
 
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-white/8 via-white/6 to-white/10 ring-1 ring-white/10 backdrop-blur-xl">
-      <button
-        className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent p-6 text-left sm:p-8"
-        onClick={() => setIsExpanded(!isExpanded)}
-        type="button"
-      >
-        <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-neutral-50 text-xl">
-            📋 To-Do List
-          </h2>
-          {pendingTodos.length > 0 && (
-            <span className="rounded-full bg-rose-500 px-2 py-1 font-medium text-white text-xs">
-              {pendingTodos.length}
-            </span>
-          )}
-        </div>
-        <div className="px-3 py-1 font-medium text-neutral-300 text-sm transition-colors hover:text-neutral-50">
-          {isExpanded ? "−" : "+"}
-        </div>
-      </button>
+    <section className="mt-10">
+      <div className="rounded-[32px] border border-[#2F241B] bg-gradient-to-b from-[#18120D] to-[#120D09] px-6 py-6 shadow-[0_30px_52px_rgba(0,0,0,0.45)]">
+        <header className="text-center">
+          <h3 className="font-medium text-[#8F7F71] text-sm">To-do list</h3>
+          <p className="mt-1 text-[#6F6155] text-xs">
+            Jot down anything you want Bellhop to pick up and track the progress
+            below.
+          </p>
+        </header>
 
-      {isExpanded && (
-        <div className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
-          {/* Add new todo input */}
-          <div className="flex gap-3">
-            <Input
-              className="flex-1 border-white/10 bg-white/5 text-neutral-50 placeholder:text-neutral-400 focus:border-white/20 focus:ring-white/10"
-              onChange={(e) => setNewTodo(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addTodo()}
-              placeholder="Add a new task..."
+        <form
+          className="mt-5 flex flex-col gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            addTodo();
+          }}
+        >
+          <label className="sr-only" htmlFor="legacy-todo-input">
+            Add a task for Bellhop
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <textarea
+              aria-label="Describe a task for Bellhop"
+              className="flex-1 resize-none rounded-2xl border border-[#3A2A20] bg-[#0C0806] px-4 py-3 text-[#F4E3CE] text-sm shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/40"
+              id="legacy-todo-input"
+              onChange={(event) => setNewTodo(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  addTodo();
+                }
+              }}
+              placeholder="e.g. Update Halloween weekend pricing clamp"
+              rows={3}
               value={newTodo}
             />
-            <Button
-              className={cn(
-                "transition-colors",
-                isListening
-                  ? "border-rose-500 bg-rose-500 text-white hover:bg-rose-600"
-                  : "border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10 hover:text-neutral-50"
-              )}
-              onClick={isListening ? stopListening : startListening}
-              size="icon"
-              variant="outline"
-            >
-              {isListening ? (
-                <MicOff className="h-4 w-4" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              className="border-white/10 bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-neutral-50"
-              onClick={addTodo}
-              size="icon"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+            <div className="flex shrink-0 flex-col gap-2 sm:w-32">
+              <Button
+                className={cn(
+                  "rounded-full border border-[#3A2A20] bg-[#0C0806] text-[#C2B3A6] transition",
+                  isListening &&
+                    "border-rose-500 bg-rose-500 text-white hover:bg-rose-600"
+                )}
+                onClick={(event) => {
+                  event.preventDefault();
+                  isListening ? stopListening() : startListening();
+                }}
+                type="button"
+              >
+                {isListening ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
+              <button
+                className="rounded-full bg-[#FF922C] px-5 py-2 font-semibold text-sm text-white shadow-[0_18px_30px_rgba(255,146,44,0.45)] transition hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/40"
+                type="submit"
+              >
+                Send
+              </button>
+            </div>
           </div>
+          <p className="text-[#8F7E6E] text-xs">
+            Bellhop automatically grabs new items and keeps you posted here.
+          </p>
+        </form>
 
-          {/* Todo list */}
-          <div className="space-y-3">
-            {todos.map((todo) => (
-              <div className="space-y-2" key={todo.id}>
-                <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition-colors hover:border-white/20 hover:bg-white/10">
-                  <Checkbox
-                    checked={todo.completed}
-                    className="mt-1"
-                    onCheckedChange={() => toggleTodo(todo.id)}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={cn(
-                        "text-neutral-50 text-sm lg:text-base",
-                        todo.completed && "text-neutral-400 line-through"
-                      )}
-                    >
-                      {todo.text}
-                    </p>
-
-                    {todo.isProcessing && (
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center gap-2 text-neutral-400 text-sm">
-                          <Loader className="h-3 w-3 animate-spin" />
-                          <span>{todo.processingStatus}</span>
-                        </div>
-                        <div className="h-1 w-full rounded-full bg-white/10">
-                          <div
-                            className="h-1 rounded-full bg-rose-500 transition-all duration-300"
-                            style={{
-                              width: `${todo.processingProgress || 0}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
+        <div className="mt-6 space-y-3">
+          {todos.map((todo) => (
+            <div className="space-y-2" key={todo.id}>
+              <div className="flex items-start gap-3 rounded-[24px] border border-[#2F241B] bg-[#14100C] p-4">
+                <Checkbox
+                  checked={todo.completed}
+                  className="mt-1"
+                  onCheckedChange={() => toggleTodo(todo.id)}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={cn(
+                      "text-[#F4E9DA] text-sm",
+                      todo.completed && "text-[#7A6C60] line-through"
                     )}
-
-                    {todo.assignedToAI && !todo.isProcessing && (
-                      <div className="mt-2 flex items-center gap-2 text-neutral-400 text-sm">
-                        <Bot className="h-3 w-3" />
-                        <span>Completed by AI</span>
-                      </div>
-                    )}
-
-                    {todo.aiResult && !todo.isProcessing && (
-                      <div className="mt-3 space-y-2">
-                        {todo.aiResult.success ? (
-                          <div className="text-sm">
-                            <div className="mb-2 flex items-center gap-1 font-medium text-emerald-400">
-                              <span className="text-emerald-300">✓</span>
-                              Task completed successfully
-                            </div>
-
-                            {todo.aiResult.data && (
-                              <div className="space-y-1 rounded-md bg-white/5 p-3 text-xs">
-                                {todo.aiResult.data.dateRange && (
-                                  <div className="font-medium text-neutral-200">
-                                    📅 {todo.aiResult.data.dateRange}
-                                  </div>
-                                )}
-                                {todo.aiResult.data.currentRate &&
-                                  todo.aiResult.data.newRate && (
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between text-neutral-300">
-                                        <span>Previous rate:</span>
-                                        <span className="font-mono">
-                                          ${todo.aiResult.data.currentRate}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between text-neutral-300">
-                                        <span>New rate:</span>
-                                        <span className="font-medium font-mono">
-                                          ${todo.aiResult.data.newRate}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between text-emerald-400">
-                                        <span>Change:</span>
-                                        <span className="font-mono">
-                                          {todo.aiResult.data.adjustment > 0
-                                            ? "+"
-                                            : ""}
-                                          {todo.aiResult.data.adjustment}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                {todo.aiResult.data.reason && (
-                                  <div className="mt-2 text-neutral-400">
-                                    Reason: {todo.aiResult.data.reason}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1 font-medium text-rose-400">
-                              <span className="text-rose-300">✗</span>
-                              {todo.aiResult.message}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    className="text-neutral-400 hover:bg-rose-400/10 hover:text-rose-400"
-                    disabled={todo.isProcessing}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      deleteTodo(todo.id);
-                    }}
-                    size="icon"
-                    variant="ghost"
                   >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
+                    {todo.text}
+                  </p>
 
-                {/* AI Suggestion */}
-                {todo.aiSuggestion &&
-                  !todo.assignedToAI &&
-                  !todo.isProcessing && (
-                    <div className="mt-2 ml-6 rounded-md border border-white/10 bg-white/5 p-3">
-                      <div className="flex items-start gap-2">
-                        <Bot className="mt-0.5 h-3 w-3 text-neutral-400" />
-                        <div className="flex-1 space-y-2">
-                          <p className="text-neutral-300 text-sm">
-                            {todo.aiSuggestion.message}
-                          </p>
-
-                          <Button
-                            className="h-7 border-white/10 bg-white/5 text-neutral-300 text-xs hover:bg-white/10 hover:text-neutral-50"
-                            onClick={() => assignToAI(todo.id)}
-                            size="sm"
-                            variant="outline"
-                          >
-                            Let AI handle this
-                          </Button>
-                        </div>
+                  {todo.isProcessing && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2 text-[#8F7F71] text-sm">
+                        <Loader className="h-3 w-3 animate-spin" />
+                        <span>{todo.processingStatus}</span>
+                      </div>
+                      <div className="h-1 w-full rounded-full bg-[#2D221B]">
+                        <div
+                          className="h-1 rounded-full bg-[#FF922C] transition-all duration-300"
+                          style={{
+                            width: `${todo.processingProgress || 0}%`,
+                          }}
+                        />
                       </div>
                     </div>
                   )}
-              </div>
-            ))}
 
-            {todos.length === 0 && (
-              <p className="py-8 text-center text-neutral-400 text-sm">
-                No tasks yet. Add one above to get started!
-              </p>
-            )}
-          </div>
+                  {todo.assignedToAI && !todo.isProcessing && (
+                    <div className="mt-2 flex items-center gap-2 text-[#8F7F71] text-xs">
+                      <Bot className="h-3 w-3" />
+                      <span>Completed by Bellhop</span>
+                    </div>
+                  )}
+
+                  {todo.aiResult && !todo.isProcessing && (
+                    <div className="mt-3 space-y-2">
+                      {todo.aiResult.success ? (
+                        <div className="rounded-2xl border border-[#2D2119] bg-[#1B140F] p-3 text-[#F1E4D4] text-xs">
+                          <div className="mb-2 flex items-center gap-1 font-medium text-[#FFB46A]">
+                            <span>✓</span>
+                            Task completed successfully
+                          </div>
+                          {todo.aiResult.data?.reason && (
+                            <p className="text-[#B9A998]">
+                              Reason: {todo.aiResult.data.reason}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border border-[#3C1E1E] bg-[#1F1111] p-3 text-[#E6B1B1] text-xs">
+                          <div className="flex items-center gap-1 font-medium">
+                            <span>✗</span>
+                            {todo.aiResult.message}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <Button
+                  className="text-[#9B8C80] hover:bg-[#3C2E23] hover:text-[#F4E9DA]"
+                  disabled={todo.isProcessing}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    deleteTodo(todo.id);
+                  }}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+
+              {todo.aiSuggestion && !todo.assignedToAI && !todo.isProcessing ? (
+                <div className="ml-7 rounded-2xl border border-[#2F241B] bg-[#18110C] p-3 text-[#C8B8AA] text-xs">
+                  <div className="flex items-start gap-2">
+                    <Bot className="mt-0.5 h-3 w-3 text-[#8F7F71]" />
+                    <div className="space-y-2">
+                      <p>{todo.aiSuggestion.message}</p>
+                      <Button
+                        className="h-7 rounded-full border border-[#3A2A1F] bg-[#24170F] px-3 text-[#F4E9DA] hover:bg-[#2F2015]"
+                        onClick={() => assignToAI(todo.id)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Let AI handle this
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ))}
+
+          {todos.length === 0 && (
+            <p className="rounded-[28px] border border-[#2F241B] border-dashed px-6 py-10 text-center text-[#756657] text-sm">
+              No tasks yet. Add one above to get started!
+            </p>
+          )}
 
           {completedTodos.length > 0 && (
-            <div className="border-white/10 border-t pt-4">
-              <p className="mb-2 text-neutral-400 text-sm">
+            <div className="border-[#2F241B] border-t pt-4">
+              <p className="text-[#8F7F71] text-xs">
                 Completed ({completedTodos.length})
               </p>
             </div>
           )}
         </div>
-      )}
+      </div>
     </section>
   );
 }
