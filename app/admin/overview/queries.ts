@@ -11,15 +11,17 @@ export async function getHotelOverview() {
   const company = await db.select().from(companySettings).limit(1);
 
   // Get all services
-  const allServices = await db.select({
-    id: services.id,
-    name: services.name,
-    type: services.type,
-    rateLowerUsd: services.rateLowerUsd,
-    rateUpperUsd: services.rateUpperUsd,
-    createdAt: services.createdAt,
-    updatedAt: services.updatedAt,
-  }).from(services);
+  const allServices = await db
+    .select({
+      id: services.id,
+      name: services.name,
+      type: services.type,
+      rateLowerUsd: services.rateLowerUsd,
+      rateUpperUsd: services.rateUpperUsd,
+      createdAt: services.createdAt,
+      updatedAt: services.updatedAt,
+    })
+    .from(services);
 
   // Get total room count
   const totalRoomsResult = await db.select({ count: count() }).from(rooms);
@@ -61,7 +63,7 @@ export async function getMonthlyOccupancy() {
       occupancyRate: Number.parseFloat(row.occupancy_rate),
     }));
   } catch (error) {
-    console.error('Error fetching monthly occupancy:', error);
+    console.error("Error fetching monthly occupancy:", error);
     return [];
   }
 }
@@ -106,7 +108,7 @@ export async function getUpcomingWeekRates() {
       occupancyRate: Number.parseFloat(row.occupancy_rate),
     }));
   } catch (error) {
-    console.error('Error fetching upcoming week rates:', error);
+    console.error("Error fetching upcoming week rates:", error);
     return [];
   }
 }

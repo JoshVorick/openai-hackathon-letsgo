@@ -28,9 +28,10 @@ export const getRateClamps = tool({
         .from(services);
 
       // Apply filter if service names are provided
-      const rateClamps = serviceNames && serviceNames.length > 0
-        ? await baseQuery.where(inArray(services.name, serviceNames))
-        : await baseQuery;
+      const rateClamps =
+        serviceNames && serviceNames.length > 0
+          ? await baseQuery.where(inArray(services.name, serviceNames))
+          : await baseQuery;
 
       return {
         rateClamps: rateClamps.map((clamp) => ({

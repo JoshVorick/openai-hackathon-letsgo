@@ -9,8 +9,8 @@ import {
   opportunityDeployments,
   roomRates,
   rooms,
-  services,
   type ServiceClamp,
+  services,
 } from "./schema";
 
 type RoomInsert = typeof rooms.$inferInsert;

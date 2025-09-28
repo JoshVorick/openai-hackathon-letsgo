@@ -280,7 +280,8 @@ export function TodoList() {
                                         new CustomEvent("bellhop:kickoff", {
                                           detail: {
                                             prompt:
-                                              todo.aiSuggestion?.starterQuery || "",
+                                              todo.aiSuggestion?.starterQuery ||
+                                              "",
                                             source: `todo-${todo.id}`,
                                           },
                                         })

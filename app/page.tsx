@@ -1,6 +1,6 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 "use client";
-import { ArrowRight, ArrowUpRight, ChevronDown, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ChevronDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
@@ -61,11 +61,11 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
       <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-3 pt-10 pb-28 sm:px-4">
-        <header className="flex justify-between items-center">
+        <header className="flex items-center justify-between">
           <BellhopMark className="h-6 w-6 text-[#F4EDE5]" />
           <Link
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#FF922C] to-[#FF7A1C] text-[#1D1107] shadow-[0_8px_16px_rgba(255,146,44,0.35)] transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
             href="/pricing-strategy"
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-[#FF922C] to-[#FF7A1C] text-[#1D1107] shadow-[0_8px_16px_rgba(255,146,44,0.35)] hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
           >
             <TrendingUp className="h-5 w-5" />
           </Link>
