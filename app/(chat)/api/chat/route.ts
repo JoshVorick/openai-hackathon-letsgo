@@ -209,22 +209,6 @@ export async function POST(request: Request) {
                   "analyzePricingOpportunities",
                   "executePricingAction",
                 ],
-          onToolCall: ({ toolCall }) => {
-            console.log("🛠️ [CHAT-ROUTE] TOOL CALL:", {
-              toolName: toolCall.toolName,
-              args: toolCall.args,
-              timestamp: new Date().toISOString(),
-            });
-          },
-          onToolResult: ({ toolCall, result: toolResult }) => {
-            console.log("🔧 [CHAT-ROUTE] TOOL RESULT:", {
-              toolName: toolCall.toolName,
-              success: !toolResult.error,
-              error: toolResult.error,
-              resultSize: JSON.stringify(toolResult).length,
-              timestamp: new Date().toISOString(),
-            });
-          },
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
             getWeather,

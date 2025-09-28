@@ -10,6 +10,7 @@ import {
   roomRates,
   rooms,
   services,
+  type ServiceClamp,
 } from "./schema";
 
 type RoomInsert = typeof rooms.$inferInsert;
@@ -73,7 +74,7 @@ async function seedHotelData() {
           maxRate: 750,
           direction: "tighten",
           notes: "Initial baseline clamp before AI adjustments.",
-        },
+        } as ServiceClamp,
       },
     ];
 
