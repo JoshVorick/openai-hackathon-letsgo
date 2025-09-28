@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
+import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
@@ -201,6 +202,11 @@ export default function DashboardPage() {
         <MetricCarousel
           className="mt-4"
           slides={[
+            <CompetitorPricingChart
+              key="competitor-pricing"
+              data={snapshot.competitorPricing}
+              className=""
+            />,
             <div className="space-y-6" key="occupancy">
               <div className="flex items-center justify-between">
                 <div>
