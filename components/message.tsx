@@ -172,7 +172,7 @@ const PurePreviewMessage = ({
             }
 
             if (type === "tool-getWeather") {
-              const { toolCallId, state } = part;
+              const { toolCallId, state } = part as any;
 
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
@@ -193,7 +193,7 @@ const PurePreviewMessage = ({
             }
 
             if (type === "tool-getOccupancyData") {
-              const { toolCallId, state } = part;
+              const { toolCallId, state } = part as any;
               const output = part.output as OccupancyDataResponse | undefined;
               const isError = Boolean(output && "error" in output);
               const errorText = isError
@@ -256,16 +256,16 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "tool-createDocument") {
-              const { toolCallId } = part;
+            if ((type as any) === "tool-createDocument") {
+              const { toolCallId } = part as any;
 
-              if (part.output && "error" in part.output) {
+              if ((part as any).output && "error" in (part as any).output) {
                 return (
                   <div
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error creating document: {String(part.output.error)}
+                    Error creating document: {String((part as any).output.error)}
                   </div>
                 );
               }
@@ -274,21 +274,21 @@ const PurePreviewMessage = ({
                 <DocumentPreview
                   isReadonly={isReadonly}
                   key={toolCallId}
-                  result={part.output}
+                  result={(part as any).output}
                 />
               );
             }
 
-            if (type === "tool-updateDocument") {
-              const { toolCallId } = part;
+            if ((type as any) === "tool-updateDocument") {
+              const { toolCallId } = part as any;
 
-              if (part.output && "error" in part.output) {
+              if ((part as any).output && "error" in (part as any).output) {
                 return (
                   <div
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error updating document: {String(part.output.error)}
+                    Error updating document: {String((part as any).output.error)}
                   </div>
                 );
               }
@@ -296,36 +296,36 @@ const PurePreviewMessage = ({
               return (
                 <div className="relative" key={toolCallId}>
                   <DocumentPreview
-                    args={{ ...part.output, isUpdate: true }}
+                    args={{ ...(part as any).output, isUpdate: true }}
                     isReadonly={isReadonly}
-                    result={part.output}
+                    result={(part as any).output}
                   />
                 </div>
               );
             }
 
-            if (type === "tool-requestSuggestions") {
-              const { toolCallId, state } = part;
+            if ((type as any) === "tool-requestSuggestions") {
+              const { toolCallId, state } = part as any;
 
               return (
                 <Tool defaultOpen={true} key={toolCallId}>
                   <ToolHeader state={state} type="tool-requestSuggestions" />
                   <ToolContent>
                     {state === "input-available" && (
-                      <ToolInput input={part.input} />
+                      <ToolInput input={(part as any).input} />
                     )}
                     {state === "output-available" && (
                       <ToolOutput
                         errorText={undefined}
                         output={
-                          "error" in part.output ? (
+                          "error" in (part as any).output ? (
                             <div className="rounded border p-2 text-red-500">
-                              Error: {String(part.output.error)}
+                              Error: {String((part as any).output.error)}
                             </div>
                           ) : (
                             <DocumentToolResult
                               isReadonly={isReadonly}
-                              result={part.output}
+                              result={(part as any).output}
                               type="request-suggestions"
                             />
                           )

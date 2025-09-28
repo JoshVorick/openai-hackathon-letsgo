@@ -26,7 +26,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
         const { code } = object;
 
         if (code) {
-          dataStream.write({
+          (dataStream as any).write({
             type: "data-codeDelta",
             data: code ?? "",
             transient: true,
@@ -59,7 +59,7 @@ export const codeDocumentHandler = createDocumentHandler<"code">({
         const { code } = object;
 
         if (code) {
-          dataStream.write({
+          (dataStream as any).write({
             type: "data-codeDelta",
             data: code ?? "",
             transient: true,
