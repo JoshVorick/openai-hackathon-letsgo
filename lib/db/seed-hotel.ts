@@ -127,7 +127,6 @@ async function seedHotelData() {
         status: "pending_review",
         confidence: "0.78",
         targetDate: targetDateISO,
-        ctaLabel: "Review and deploy",
         metadata: {
           opportunitySource: "external_event",
           eventName: "GPT-5 Codex Hackathon",
