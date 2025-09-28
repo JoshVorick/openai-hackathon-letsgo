@@ -39,7 +39,7 @@ export function ChatOverlay({
         />
       )}
 
-      <div className="fixed right-5 bottom-8 z-[70] flex h-full flex-col items-end gap-4">
+      <div className="pointer-events-none fixed right-5 bottom-8 z-[70] flex h-full flex-col items-end gap-4">
         <div
           aria-hidden={!isOpen}
           className={cn(
@@ -74,7 +74,7 @@ export function ChatOverlay({
         <button
           aria-expanded={isOpen}
           aria-label={isOpen ? "Hide Copilot chat" : "Open Copilot chat"}
-          className="fixed right-4 bottom-4 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_12px_24px_-12px_rgba(15,15,15,0.6)] transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="pointer-events-auto fixed right-4 bottom-4 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_12px_24px_-12px_rgba(15,15,15,0.6)] transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
           onClick={() => setIsOpen((prev) => !prev)}
           type="button"
         >
