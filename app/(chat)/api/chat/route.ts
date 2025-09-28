@@ -22,6 +22,8 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { analyzePricingOpportunities } from "@/lib/ai/tools/analyze-pricing-opportunities";
+import { executePricingAction } from "@/lib/ai/tools/execute-pricing-action";
 import { getHotelSettings } from "@/lib/ai/tools/get-hotel-settings";
 import { getOccupancyData } from "@/lib/ai/tools/get-occupancy-data";
 import { getRateClamps } from "@/lib/ai/tools/get-rate-clamps";
@@ -196,6 +198,8 @@ export async function POST(request: Request) {
                   "updateRateClamps",
                   "getHotelSettings",
                   "updateHotelSettings",
+                  "analyzePricingOpportunities",
+                  "executePricingAction",
                 ],
           onToolCall: ({ toolCall }) => {
             console.log("🛠️ [CHAT-ROUTE] TOOL CALL:", {
@@ -223,6 +227,8 @@ export async function POST(request: Request) {
             updateRateClamps,
             getHotelSettings,
             updateHotelSettings,
+            analyzePricingOpportunities,
+            executePricingAction,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
