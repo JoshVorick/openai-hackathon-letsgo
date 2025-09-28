@@ -37,6 +37,10 @@ function getBarColor(value: number) {
   return "#8BD37D";
 }
 
+const opportunityDetailRoutes: Record<string, string> = {
+  "hackathon-marketing": "/opportunities/hackathon-event",
+};
+
 export default function DashboardPage() {
   const snapshot = getMockHotelSnapshot();
   const greeting = getGreeting(new Date());
@@ -56,7 +60,7 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
-      <div className="mx-auto flex min-h-screen w-full max-w-sm flex-col px-3 pt-10 pb-28 sm:px-4">
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-3 pt-10 pb-28 sm:px-4">
         <header className="flex justify-start">
           <BellhopMark className="h-6 w-6 text-[#F4EDE5]" />
         </header>
@@ -82,52 +86,67 @@ export default function DashboardPage() {
           </summary>
 
           <div className="mt-4 space-y-3">
-            {snapshot.opportunities.map((opportunity) => (
-              <article
-                className="rounded-3xl border border-[#2E241C] bg-[#14100C]/90 px-4 py-5 shadow-[0_18px_32px_rgba(0,0,0,0.45)]"
-                key={opportunity.id}
-              >
-                <h2 className="font-semibold text-[#F9EBD9] text-base">
-                  {opportunity.title}
-                </h2>
-                <p className="mt-2 text-[#A59281] text-sm">
-                  {opportunity.description}
-                </p>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    className="flex-1 justify-between bg-[#FF922C] text-[#1D1107] shadow-[0_16px_30px_rgba(255,146,44,0.45)] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
-                    onClick={() =>
-                      handleBellhopKickoff({
-                        prompt: opportunity.llmKickoffPrompt,
-                        source: opportunity.id,
-                      })
-                    }
-                    type="button"
-                  >
-                    <span>{opportunity.llmActionLabel}</span>
-                    <ArrowUpRight className="size-4" />
-                  </Button>
-                  <Link
-                    className="inline-flex items-center justify-between gap-2 rounded-full border border-[#8F7F71] px-5 py-2 font-semibold text-[#F4EDE5] text-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F7F71]/50"
-                    href={`/opportunities/${opportunity.id}`}
-                  >
-                    <span>{opportunity.ctaLabel}</span>
-                    <ArrowRight className="size-4" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+            {snapshot.opportunities.map((opportunity) => {
+              const detailHref =
+                opportunityDetailRoutes[opportunity.id] ??
+                `/opportunities/${opportunity.id}`;
+              const isDetailOpportunity =
+                opportunity.id === "hackathon-marketing";
+
+              return (
+                <article
+                  className="rounded-3xl border border-[#2E241C] bg-[#14100C]/90 px-4 py-5 shadow-[0_18px_32px_rgba(0,0,0,0.45)]"
+                  key={opportunity.id}
+                >
+                  <h2 className="font-semibold text-[#F9EBD9] text-base">
+                    {opportunity.title}
+                  </h2>
+                  <p className="mt-2 text-[#A59281] text-sm">
+                    {opportunity.description}
+                  </p>
+                  <div className="mt-5 flex flex-col gap-3">
+                    {isDetailOpportunity ? (
+                      <Button
+                        asChild
+                        className="w-full justify-between bg-[#FF922C] text-[#1D1107] shadow-[0_16px_30px_rgba(255,146,44,0.45)] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
+                      >
+                        <Link href={detailHref}>
+                          <span>{opportunity.llmActionLabel}</span>
+                          <ArrowUpRight className="size-4" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full justify-between bg-[#FF922C] text-[#1D1107] shadow-[0_16px_30px_rgba(255,146,44,0.45)] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
+                        onClick={() =>
+                          handleBellhopKickoff({
+                            prompt: opportunity.llmKickoffPrompt,
+                            source: opportunity.id,
+                          })
+                        }
+                        type="button"
+                      >
+                        <span>{opportunity.llmActionLabel}</span>
+                        <ArrowUpRight className="size-4" />
+                      </Button>
+                    )}
+                    <Link
+                      className="inline-flex w-full items-center justify-between gap-2 rounded-full border border-[#8F7F71] px-5 py-2 font-semibold text-[#F4EDE5] text-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F7F71]/50"
+                      href={detailHref}
+                    >
+                      <span>{opportunity.ctaLabel}</span>
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </details>
 
         <MetricCarousel
           className="mt-8"
           slides={[
-            <CompetitorPricingChart
-              className=""
-              data={snapshot.competitorPricing}
-              key="competitor-pricing"
-            />,
             <div className="space-y-6" key="occupancy">
               <h2 className="text-center font-medium text-[#8F7F71] text-sm">
                 Next week's occupancy
@@ -179,6 +198,11 @@ export default function DashboardPage() {
                 })}
               </div>
             </div>,
+            <CompetitorPricingChart
+              className=""
+              data={snapshot.competitorPricing}
+              key="competitor-pricing"
+            />,
           ]}
         />
 
