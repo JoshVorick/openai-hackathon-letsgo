@@ -1,6 +1,11 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 "use client";
-import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ChevronDown,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
@@ -57,8 +62,15 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
       <div className="mx-auto flex min-h-screen w-full max-w-sm flex-col px-3 pt-10 pb-28 sm:px-4">
-        <header className="flex justify-start">
+        <header className="flex items-center justify-between">
           <BellhopMark className="h-6 w-6 text-[#F4EDE5]" />
+          <Link
+            className="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-[#1A1410]"
+            href="/pricing-strategy"
+            title="Pricing Strategy"
+          >
+            <TrendingUp className="h-6 w-6 text-[#8F7F71] hover:text-[#F4EDE5]" />
+          </Link>
         </header>
 
         <section className="mt-10">
@@ -107,13 +119,6 @@ export default function DashboardPage() {
                     <span>{opportunity.llmActionLabel}</span>
                     <ArrowUpRight className="size-4" />
                   </Button>
-                  <Link
-                    className="inline-flex items-center justify-between gap-2 rounded-full border border-[#8F7F71] px-5 py-2 font-semibold text-[#F4EDE5] text-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F7F71]/50"
-                    href={`/opportunities/${opportunity.id}`}
-                  >
-                    <span>{opportunity.ctaLabel}</span>
-                    <ArrowRight className="size-4" />
-                  </Link>
                 </div>
               </article>
             ))}

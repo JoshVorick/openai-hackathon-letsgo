@@ -7,6 +7,7 @@ import type { getOccupancyData } from "./ai/tools/get-occupancy-data";
 import type { getRateClamps } from "./ai/tools/get-rate-clamps";
 import type { getRoomRates } from "./ai/tools/get-room-rates";
 import type { getWeather } from "./ai/tools/get-weather";
+import type { getPricingSop } from "./ai/tools/get-pricing-sop";
 import type { updateHotelSettings } from "./ai/tools/update-hotel-settings";
 import type { updateRateClamps } from "./ai/tools/update-rate-clamps";
 import type { updateRoomRates } from "./ai/tools/update-room-rates";
@@ -28,6 +29,7 @@ type getRateClampsTool = InferUITool<typeof getRateClamps>;
 type updateRateClampsTool = InferUITool<typeof updateRateClamps>;
 type getHotelSettingsTool = InferUITool<typeof getHotelSettings>;
 type updateHotelSettingsTool = InferUITool<typeof updateHotelSettings>;
+type getPricingSopTool = InferUITool<typeof getPricingSop>;
 type analyzePricingOpportunitiesTool = InferUITool<
   typeof analyzePricingOpportunities
 >;
@@ -42,6 +44,7 @@ export type ChatTools = {
   updateRateClamps: updateRateClampsTool;
   getHotelSettings: getHotelSettingsTool;
   updateHotelSettings: updateHotelSettingsTool;
+  getPricingSop: getPricingSopTool;
   analyzePricingOpportunities: analyzePricingOpportunitiesTool;
   executePricingAction: executePricingActionTool;
 };
