@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { z } from "zod";
 
-import { services, type ServiceClamp } from "@/lib/db/schema";
+import { type ServiceClamp, services } from "@/lib/db/schema";
 
 const client = postgres(process.env.POSTGRES_URL || "");
 const db = drizzle(client);
@@ -15,7 +15,9 @@ export const updateServiceClamp = tool({
   inputSchema: z.object({
     serviceName: z
       .string()
-      .describe("Name of the service whose clamp configuration should be updated."),
+      .describe(
+        "Name of the service whose clamp configuration should be updated."
+      ),
     clamp: z
       .object({
         target: z
@@ -31,17 +33,23 @@ export const updateServiceClamp = tool({
           .describe("Optional maximum rate threshold to enforce."),
         direction: z
           .enum(["tighten", "loosen"])
-          .describe("Whether to tighten (raise floors) or loosen (lower floors) the clamp."),
+          .describe(
+            "Whether to tighten (raise floors) or loosen (lower floors) the clamp."
+          ),
         notes: z
           .string()
           .optional()
-          .describe("Human-readable notes that explain the intent of the clamp."),
+          .describe(
+            "Human-readable notes that explain the intent of the clamp."
+          ),
       })
       .describe("The clamp payload to persist."),
     reason: z
       .string()
       .optional()
-      .describe("Why the clamp is changing, used for logging and audit trails."),
+      .describe(
+        "Why the clamp is changing, used for logging and audit trails."
+      ),
   }),
   execute: async ({ serviceName, clamp, reason }) => {
     try {

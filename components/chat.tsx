@@ -171,7 +171,7 @@ export function Chat({
     return () => {
       window.removeEventListener(
         "bellhop:kickoff",
-        handleKickoff as EventListener,
+        handleKickoff as EventListener
       );
     };
   }, [sendMessage]);

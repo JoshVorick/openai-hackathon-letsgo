@@ -61,7 +61,7 @@ export default function DashboardPage() {
     window.dispatchEvent(
       new CustomEvent("bellhop:kickoff", {
         detail,
-      }),
+      })
     );
   };
 

@@ -29,8 +29,8 @@ import { getRoomRates } from "@/lib/ai/tools/get-room-rates";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { updateHotelSettings } from "@/lib/ai/tools/update-hotel-settings";
 import { updateRateClamps } from "@/lib/ai/tools/update-rate-clamps";
-import { updateServiceClamp } from "@/lib/ai/tools/update-service-clamp";
 import { updateRoomRates } from "@/lib/ai/tools/update-room-rates";
+import { updateServiceClamp } from "@/lib/ai/tools/update-service-clamp";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
