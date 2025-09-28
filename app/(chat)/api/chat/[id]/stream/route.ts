@@ -97,8 +97,9 @@ export async function GET(
       execute: ({ writer }) => {
         writer.write({
           type: "message-metadata",
-          messageMetadata: { createdAt: new Date(mostRecentMessage.createdAt).toISOString() },
-          transient: true,
+          messageMetadata: {
+            createdAt: new Date(mostRecentMessage.createdAt).toISOString(),
+          },
         });
       },
     });
