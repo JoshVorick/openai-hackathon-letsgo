@@ -85,9 +85,10 @@ function getEventWindow(detail: OpportunityDetail) {
 export default async function OpportunityPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const detail = await getOpportunityDetailBySlug({ slug: params.slug });
+  const { slug } = await params;
+  const detail = await getOpportunityDetailBySlug({ slug });
 
   if (!detail) {
     notFound();

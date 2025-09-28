@@ -215,9 +215,8 @@ export default async function DashboardPage() {
               <div className="grid grid-cols-7 gap-3">
                 {snapshot.occupancy.map((point) => {
                   const date = new Date(point.date);
-                  const occupancy = point.occupancy;
+                  const pointOccupancy = point.occupancy;
                   const lastYear = point.lastYearOccupancy;
-                  const delta = occupancy - lastYear;
 
                   return (
                     <div
@@ -228,7 +227,7 @@ export default async function DashboardPage() {
                         <div
                           className="w-2 rounded-full bg-rose-500"
                           style={{
-                            height: `${occupancy}%`,
+                            height: `${pointOccupancy}%`,
                             maxHeight: "100%",
                           }}
                         />
@@ -242,9 +241,9 @@ export default async function DashboardPage() {
                       </div>
                       <div className="text-center">
                         <div className="font-medium text-neutral-200 text-xs">
-                          {occupancy}%
+                          {pointOccupancy}%
                         </div>
-                        <div className="text-neutral-500 text-[10px]">
+                        <div className="text-[10px] text-neutral-500">
                           {weekdayFormatter.format(date)}
                         </div>
                       </div>

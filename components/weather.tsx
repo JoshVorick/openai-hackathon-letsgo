@@ -291,12 +291,8 @@ export function Weather({
   }, []);
 
   if (dataset) {
-    const currentHigh = Math.max(
-      ...dataset.hourly.temperature_2m.slice(0, 24)
-    );
-    const currentLow = Math.min(
-      ...dataset.hourly.temperature_2m.slice(0, 24)
-    );
+    const currentHigh = Math.max(...dataset.hourly.temperature_2m.slice(0, 24));
+    const currentLow = Math.min(...dataset.hourly.temperature_2m.slice(0, 24));
 
     const isDay = isWithinInterval(new Date(dataset.current.time), {
       start: new Date(dataset.daily.sunrise[0]),
@@ -345,19 +341,19 @@ export function Weather({
               )}
             />
             <div>
-              <p className="text-white text-sm font-semibold">
+              <p className="font-semibold text-sm text-white">
                 {format(new Date(dataset.current.time), "EEEE, MMM d")}
               </p>
-              <h2 className="text-white text-4xl font-bold">
+              <h2 className="font-bold text-4xl text-white">
                 {n(dataset.current.temperature_2m)}
                 {dataset.current_units.temperature_2m}
               </h2>
-              <p className="text-white/75 text-sm">
+              <p className="text-sm text-white/75">
                 High {n(currentHigh)}° · Low {n(currentLow)}°
               </p>
             </div>
           </div>
-          <div className="text-right text-white text-sm">
+          <div className="text-right text-sm text-white">
             <p>Sunrise {format(new Date(dataset.daily.sunrise[0]), "p")}</p>
             <p>Sunset {format(new Date(dataset.daily.sunset[0]), "p")}</p>
             <p>Feels like {n(dataset.current.temperature_2m)}°</p>
@@ -412,7 +408,7 @@ export function Weather({
               </p>
             </div>
             {typeof current?.temperature === "number" && (
-              <p className="text-2xl font-semibold">
+              <p className="font-semibold text-2xl">
                 {n(current.temperature)}°
               </p>
             )}
@@ -424,7 +420,8 @@ export function Weather({
                 Today
               </p>
               <p className="text-sm">
-                High {formatTemp(current?.temperatureMax)} · Low {formatTemp(current?.temperatureMin)}
+                High {formatTemp(current?.temperatureMax)} · Low{" "}
+                {formatTemp(current?.temperatureMin)}
               </p>
               {typeof current?.windSpeed === "number" && (
                 <p className="text-muted-foreground text-xs">
@@ -439,7 +436,8 @@ export function Weather({
                   Same day last year
                 </p>
                 <p className="text-sm">
-                  High {formatTemp(historical.temperatureMax)} · Low {formatTemp(historical.temperatureMin)}
+                  High {formatTemp(historical.temperatureMax)} · Low{" "}
+                  {formatTemp(historical.temperatureMin)}
                 </p>
               </div>
             )}
@@ -450,7 +448,8 @@ export function Weather({
                   Change vs last year
                 </p>
                 <p className="text-sm">
-                  Max {formatDelta(comparison.temperatureMaxChange)} · Min {formatDelta(comparison.temperatureMinChange)}
+                  Max {formatDelta(comparison.temperatureMaxChange)} · Min{" "}
+                  {formatDelta(comparison.temperatureMinChange)}
                 </p>
               </div>
             )}
@@ -460,7 +459,11 @@ export function Weather({
     );
   }
 
-  if (weatherAtLocation && typeof weatherAtLocation === "object" && "error" in (weatherAtLocation as any)) {
+  if (
+    weatherAtLocation &&
+    typeof weatherAtLocation === "object" &&
+    "error" in (weatherAtLocation as any)
+  ) {
     return (
       <div className="rounded-xl border border-border/60 bg-muted/40 p-4 text-sm">
         {(weatherAtLocation as { error?: string }).error ??

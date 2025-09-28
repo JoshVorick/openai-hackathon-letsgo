@@ -239,11 +239,13 @@ export const getOccupancyData = tool({
 
       if (currentOccupancy.length > 0) {
         const comparisonLookup = new Map<string, OccupancyDay>();
-        comparisonOccupancy?.forEach((day) => {
-          const dateObj = new Date(day.date);
-          const key = `${dateObj.getMonth() + 1}-${dateObj.getDate()}`;
-          comparisonLookup.set(key, day);
-        });
+        if (comparisonOccupancy) {
+          for (const day of comparisonOccupancy) {
+            const dateObj = new Date(day.date);
+            const key = `${dateObj.getMonth() + 1}-${dateObj.getDate()}`;
+            comparisonLookup.set(key, day);
+          }
+        }
 
         const categories = currentOccupancy.map(({ date }) => {
           const dateObj = new Date(date);
@@ -292,7 +294,7 @@ export const getOccupancyData = tool({
         const asOfDisplay = readableFullDate.format(new Date(today));
         const changeInsight = (() => {
           if (change === null) {
-            return undefined;
+            return;
           }
           if (change === 0) {
             return "Occupancy is flat versus last year.";

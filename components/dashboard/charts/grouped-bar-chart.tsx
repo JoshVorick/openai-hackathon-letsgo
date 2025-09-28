@@ -39,7 +39,6 @@ const formatValue = (
       return `${percentFormatter.format(value)}%`;
     case "currency":
       return currencyFormatter.format(value);
-    case "number":
     default:
       return numberFormatter.format(value);
   }
@@ -89,13 +88,21 @@ export function GroupedBarChart({ spec, className }: GroupedBarChartProps) {
   const ticks = buildTicks(maxValue, valueFormatter);
 
   const layoutByCategory = (count: number) => {
-    if (count >= 14) return { groupGap: 12, barMaxWidth: 12, seriesGap: 4 };
-    if (count >= 10) return { groupGap: 14, barMaxWidth: 14, seriesGap: 6 };
-    if (count >= 6) return { groupGap: 16, barMaxWidth: 18, seriesGap: 6 };
+    if (count >= 14) {
+      return { groupGap: 12, barMaxWidth: 12, seriesGap: 4 };
+    }
+    if (count >= 10) {
+      return { groupGap: 14, barMaxWidth: 14, seriesGap: 6 };
+    }
+    if (count >= 6) {
+      return { groupGap: 16, barMaxWidth: 18, seriesGap: 6 };
+    }
     return { groupGap: 20, barMaxWidth: 22, seriesGap: 8 };
   };
 
-  const { groupGap, barMaxWidth, seriesGap } = layoutByCategory(categories.length);
+  const { groupGap, barMaxWidth, seriesGap } = layoutByCategory(
+    categories.length
+  );
   const seriesCount = normalisedSeries.length || 1;
 
   const computedBarWidth = Math.min(
@@ -192,7 +199,9 @@ export function GroupedBarChart({ spec, className }: GroupedBarChartProps) {
               <g key={`group-${category}`}>
                 {normalisedSeries.map((seriesEntry, seriesIndex) => {
                   const rawValue = seriesEntry.values[index];
-                  if (!(typeof rawValue === "number" && Number.isFinite(rawValue))) {
+                  if (
+                    !(typeof rawValue === "number" && Number.isFinite(rawValue))
+                  ) {
                     return null;
                   }
 
@@ -222,7 +231,12 @@ export function GroupedBarChart({ spec, className }: GroupedBarChartProps) {
                   fill="var(--muted-foreground)"
                   fontSize={10}
                   textAnchor="middle"
-                  x={groupX + (computedBarWidth * seriesCount + seriesGap * (seriesCount - 1)) / 2}
+                  x={
+                    groupX +
+                    (computedBarWidth * seriesCount +
+                      seriesGap * (seriesCount - 1)) /
+                      2
+                  }
                   y={chartHeight - 16}
                 >
                   {category}
@@ -255,7 +269,7 @@ export function GroupedBarChart({ spec, className }: GroupedBarChartProps) {
         ))}
       </div>
 
-      {insight && <p className="text-sm font-medium">{insight}</p>}
+      {insight && <p className="font-medium text-sm">{insight}</p>}
       {footnote && <p className="text-muted-foreground text-xs">{footnote}</p>}
 
       <div className="sr-only">
