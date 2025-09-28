@@ -3,10 +3,61 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { z } from "zod";
+import type { GroupedBarChartSpec } from "@/lib/ai/chart-types";
 import { roomRates } from "@/lib/db/schema";
+
+export type OccupancyDay = {
+  date: string;
+  totalRooms: number;
+  occupiedRooms: number;
+  occupancyRate: number;
+};
+
+export type OccupancyDataSummary = {
+  avgOccupancy: number;
+  avgOccupancyLastYear: number | null;
+  change: number | null;
+  asOfDate: string;
+  dateRange: string;
+};
+
+export type OccupancyDataSuccess = {
+  current: OccupancyDay[];
+  comparison: OccupancyDay[] | null;
+  summary: OccupancyDataSummary;
+  chart?: GroupedBarChartSpec;
+};
+
+export type OccupancyDataError = {
+  error: string;
+  details?: string;
+  availableRange?: { start: string; end: string };
+};
+
+export type OccupancyDataResponse = OccupancyDataSuccess | OccupancyDataError;
 
 const client = postgres(process.env.POSTGRES_URL || "");
 const db = drizzle(client);
+
+const readableDate = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
+
+const readableWeekday = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+});
+
+const readableFullDate = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+const percentFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 0,
+});
 
 // Helper function to get occupancy data for a date range
 async function getOccupancyForDateRange(
@@ -83,7 +134,7 @@ export const getOccupancyData = tool({
     endDate,
     includeYoYComparison = true,
     asOfDate,
-  }) => {
+  }): Promise<OccupancyDataResponse> => {
     try {
       const today = asOfDate || new Date().toISOString().split("T")[0];
 
@@ -184,6 +235,92 @@ export const getOccupancyData = tool({
           ? Math.round((avgOccupancy - avgOccupancyLastYear) * 100) / 100
           : null;
 
+      let chart: GroupedBarChartSpec | undefined;
+
+      if (currentOccupancy.length > 0) {
+        const comparisonLookup = new Map<string, OccupancyDay>();
+        comparisonOccupancy?.forEach((day) => {
+          const dateObj = new Date(day.date);
+          const key = `${dateObj.getMonth() + 1}-${dateObj.getDate()}`;
+          comparisonLookup.set(key, day);
+        });
+
+        const categories = currentOccupancy.map(({ date }) => {
+          const dateObj = new Date(date);
+          return `${readableWeekday.format(dateObj)} ${readableDate.format(dateObj)}`;
+        });
+
+        const currentYear = new Date(currentOccupancy[0].date).getFullYear();
+        const currentSeriesValues = currentOccupancy.map((day) =>
+          Number.isFinite(day.occupancyRate) ? Number(day.occupancyRate) : null
+        );
+
+        const currentColor = "#2563eb"; // blue-600
+        const comparisonColor = "#f97316"; // orange-500
+
+        const series: GroupedBarChartSpec["series"] = [
+          {
+            id: `current-${currentYear}`,
+            label: `${currentYear} occupancy`,
+            values: currentSeriesValues,
+            color: currentColor,
+          },
+        ];
+
+        if (comparisonOccupancy && comparisonOccupancy.length > 0) {
+          const comparisonYear = new Date(
+            comparisonOccupancy[0].date
+          ).getFullYear();
+
+          const comparisonSeriesValues = currentOccupancy.map((day) => {
+            const dayObj = new Date(day.date);
+            const key = `${dayObj.getMonth() + 1}-${dayObj.getDate()}`;
+            const match = comparisonLookup.get(key);
+            return match && Number.isFinite(match.occupancyRate)
+              ? Number(match.occupancyRate)
+              : null;
+          });
+
+          series.push({
+            id: `comparison-${comparisonYear}`,
+            label: `${comparisonYear} occupancy`,
+            values: comparisonSeriesValues,
+            color: comparisonColor,
+          });
+        }
+
+        const asOfDisplay = readableFullDate.format(new Date(today));
+        const changeInsight = (() => {
+          if (change === null) {
+            return undefined;
+          }
+          if (change === 0) {
+            return "Occupancy is flat versus last year.";
+          }
+
+          const magnitude = percentFormatter.format(Math.abs(change));
+          return change > 0
+            ? `Occupancy is up ${magnitude} pts vs last year.`
+            : `Occupancy is down ${magnitude} pts vs last year.`;
+        })();
+
+        chart = {
+          kind: "grouped-bar",
+          title: "Upcoming occupancy vs last year",
+          subtitle: `As of ${asOfDisplay}`,
+          categories,
+          series,
+          yAxisLabel: "Occupancy (%)",
+          valueFormatter: "percentage",
+          maxValue: 100,
+          insight: changeInsight,
+          footnote:
+            comparisonOccupancy && comparisonOccupancy.length > 0
+              ? undefined
+              : "Year-over-year comparison unavailable for this range.",
+        } satisfies GroupedBarChartSpec;
+      }
+
       const result = {
         current: currentOccupancy,
         comparison: comparisonOccupancy,
@@ -194,6 +331,7 @@ export const getOccupancyData = tool({
           asOfDate: today,
           dateRange: `${startDate} to ${endDate}`,
         },
+        chart,
       };
 
       console.log("✅ [getOccupancyData] RESPONSE:", {
@@ -202,6 +340,7 @@ export const getOccupancyData = tool({
         avgOccupancy,
         avgOccupancyLastYear,
         change,
+        hasChart: Boolean(chart),
       });
 
       return result;

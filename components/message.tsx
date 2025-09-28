@@ -5,6 +5,11 @@ import { motion } from "framer-motion";
 import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
+import type {
+  OccupancyDataError,
+  OccupancyDataResponse,
+  OccupancyDataSuccess,
+} from "@/lib/ai/tools/get-occupancy-data";
 import { cn, sanitizeText } from "@/lib/utils";
 import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
@@ -24,6 +29,7 @@ import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
 import { Weather } from "./weather";
+import { OccupancyChartCard } from "@/components/dashboard/charts/occupancy-chart-card";
 
 const PurePreviewMessage = ({
   chatId,
@@ -179,6 +185,61 @@ const PurePreviewMessage = ({
                       <ToolOutput
                         errorText={undefined}
                         output={<Weather weatherAtLocation={part.output} />}
+                      />
+                    )}
+                  </ToolContent>
+                </Tool>
+              );
+            }
+
+            if (type === "tool-getOccupancyData") {
+              const { toolCallId, state } = part;
+              const output = part.output as OccupancyDataResponse | undefined;
+              const isError = Boolean(output && "error" in output);
+              const errorText = isError
+                ? String((output as OccupancyDataError).error ?? "Unknown error")
+                : undefined;
+              const successOutput =
+                !output || isError ? undefined : (output as OccupancyDataSuccess);
+
+              const availableRange =
+                output && "availableRange" in output
+                  ? output.availableRange
+                  : undefined;
+
+              const noDataMessage = (
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium">No occupancy data returned for this range.</p>
+                  {availableRange && (
+                    <p className="text-muted-foreground text-xs">
+                      Available data: {availableRange.start} to {availableRange.end}
+                    </p>
+                  )}
+                </div>
+              );
+
+              return (
+                <Tool defaultOpen={true} key={toolCallId}>
+                  <ToolHeader state={state} type="tool-getOccupancyData" />
+                  <ToolContent>
+                    {state === "input-available" && (
+                      <ToolInput input={part.input} />
+                    )}
+                    {state === "output-available" && (
+                      <ToolOutput
+                        errorText={errorText}
+                        output={
+                          errorText
+                            ? undefined
+                            : successOutput && successOutput.chart && successOutput.summary
+                              ? (
+                                  <OccupancyChartCard
+                                    chart={successOutput.chart}
+                                    summary={successOutput.summary}
+                                  />
+                                )
+                              : noDataMessage
+                        }
                       />
                     )}
                   </ToolContent>
