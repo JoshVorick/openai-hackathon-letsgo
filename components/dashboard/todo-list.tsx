@@ -252,7 +252,7 @@ export function TodoList() {
                 className="rounded-full bg-[#FF922C] px-5 py-2 font-semibold text-sm text-white shadow-[0_18px_30px_rgba(255,146,44,0.45)] transition hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/40"
                 type="submit"
               >
-                Send
+                Add
               </button>
             </div>
           </div>
@@ -312,10 +312,138 @@ export function TodoList() {
                             <span>✓</span>
                             Task completed successfully
                           </div>
-                          {todo.aiResult.data?.reason && (
-                            <p className="text-[#B9A998]">
-                              Reason: {todo.aiResult.data.reason}
-                            </p>
+                          <p className="mb-3 text-[#B9A998]">
+                            {todo.aiResult.message}
+                          </p>
+
+                          {/* Show detailed results based on data */}
+                          {todo.aiResult.data && (
+                            <div className="space-y-2 border-t border-[#2D2119] pt-2">
+                              {/* Pricing results */}
+                              {todo.aiResult.data.currentRate && todo.aiResult.data.newRate && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Previous Rate:</span>
+                                    <span>${todo.aiResult.data.currentRate}</span>
+                                  </div>
+                                  <div className="flex justify-between font-medium text-[#FFB46A]">
+                                    <span>New Rate:</span>
+                                    <span>${todo.aiResult.data.newRate}</span>
+                                  </div>
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Adjustment:</span>
+                                    <span className={cn(
+                                      todo.aiResult.data.adjustment > 0 ? "text-green-400" : "text-red-400"
+                                    )}>
+                                      {todo.aiResult.data.adjustment > 0 ? "+" : ""}{todo.aiResult.data.adjustment}%
+                                    </span>
+                                  </div>
+                                  {todo.aiResult.data.dateRange && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Date Range:</span>
+                                      <span>{todo.aiResult.data.dateRange}</span>
+                                    </div>
+                                  )}
+                                  {todo.aiResult.data.roomsUpdated && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Rooms Updated:</span>
+                                      <span>{todo.aiResult.data.roomsUpdated}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Occupancy results */}
+                              {todo.aiResult.data.current && typeof todo.aiResult.data.current === 'number' && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Current Occupancy:</span>
+                                    <span>{todo.aiResult.data.current}%</span>
+                                  </div>
+                                  {todo.aiResult.data.lastYear && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Last Year:</span>
+                                      <span>{todo.aiResult.data.lastYear}%</span>
+                                    </div>
+                                  )}
+                                  {todo.aiResult.data.trend && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Trend:</span>
+                                      <span className={cn(
+                                        todo.aiResult.data.trend === "increasing" ? "text-green-400" :
+                                        todo.aiResult.data.trend === "decreasing" ? "text-red-400" : "text-yellow-400"
+                                      )}>
+                                        {todo.aiResult.data.trend}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Revenue results */}
+                              {todo.aiResult.data.thisMonth && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>This Month:</span>
+                                    <span>${todo.aiResult.data.thisMonth.toLocaleString()}</span>
+                                  </div>
+                                  {todo.aiResult.data.lastYear && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Last Year:</span>
+                                      <span>${todo.aiResult.data.lastYear.toLocaleString()}</span>
+                                    </div>
+                                  )}
+                                  {todo.aiResult.data.growth && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Growth:</span>
+                                      <span className="text-green-400">+{todo.aiResult.data.growth}%</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Marketing results */}
+                              {todo.aiResult.data.promoCode && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Promo Code:</span>
+                                    <span className="font-mono text-[#FFB46A]">{todo.aiResult.data.promoCode}</span>
+                                  </div>
+                                  {todo.aiResult.data.discount && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Discount:</span>
+                                      <span>{todo.aiResult.data.discount}%</span>
+                                    </div>
+                                  )}
+                                  {todo.aiResult.data.landingPageUrl && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Page URL:</span>
+                                      <span className="font-mono text-[#FFB46A]">{todo.aiResult.data.landingPageUrl}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Competitor results */}
+                              {todo.aiResult.data.yourRate && todo.aiResult.data.avgCompetitorRate && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Your Rate:</span>
+                                    <span>${todo.aiResult.data.yourRate}</span>
+                                  </div>
+                                  <div className="flex justify-between text-[#C2B3A6]">
+                                    <span>Market Average:</span>
+                                    <span>${todo.aiResult.data.avgCompetitorRate}</span>
+                                  </div>
+                                  {todo.aiResult.data.recommendation && (
+                                    <div className="flex justify-between text-[#C2B3A6]">
+                                      <span>Recommendation:</span>
+                                      <span className="text-[#FFB46A]">{todo.aiResult.data.recommendation}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       ) : (
