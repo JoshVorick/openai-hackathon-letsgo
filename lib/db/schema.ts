@@ -4,12 +4,15 @@ import {
   date,
   decimal,
   foreignKey,
+  index,
+  integer,
   json,
   jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -244,3 +247,158 @@ export const competitorRoomRates = pgTable("CompetitorRoomRates", {
 });
 
 export type CompetitorRoomRates = InferSelectModel<typeof competitorRoomRates>;
+
+// Opportunity management tables
+
+export const opportunityTypes = [
+  "event",
+  "pricing",
+  "insight",
+  "operations",
+  "general",
+] as const;
+
+export const opportunityStatuses = [
+  "draft",
+  "pending_review",
+  "in_progress",
+  "awaiting_approval",
+  "approved",
+  "deploying",
+  "deployed",
+  "failed",
+  "dismissed",
+] as const;
+
+export const opportunities = pgTable(
+  "Opportunities",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    slug: varchar("slug", { length: 128 }).notNull(),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    description: text("description"),
+    type: varchar("type", { enum: opportunityTypes }).notNull(),
+    status: varchar("status", { enum: opportunityStatuses })
+      .notNull()
+      .default("draft"),
+    confidence: decimal("confidence", { precision: 4, scale: 2 }),
+    targetDate: date("targetDate"),
+    ctaLabel: varchar("ctaLabel", { length: 128 }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex("Opportunities_slug_unique").on(table.slug),
+    typeIdx: index("Opportunities_type_idx").on(table.type),
+    statusIdx: index("Opportunities_status_idx").on(table.status),
+  })
+);
+
+export type OpportunityRow = InferSelectModel<typeof opportunities>;
+
+export const opportunityArtifactTypes = [
+  "landing_page",
+  "pricing_adjustment",
+  "messaging",
+  "document",
+  "other",
+] as const;
+
+export const opportunityArtifacts = pgTable(
+  "OpportunityArtifacts",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    opportunityId: uuid("opportunityId")
+      .notNull()
+      .references(() => opportunities.id, { onDelete: "cascade" }),
+    type: varchar("type", { enum: opportunityArtifactTypes }).notNull(),
+    title: text("title"),
+    description: text("description"),
+    content: jsonb("content").$type<Record<string, unknown> | null>(),
+    previewUrl: text("previewUrl"),
+    externalUrl: text("externalUrl"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => ({
+    opportunityIdx: index("OpportunityArtifacts_opportunity_idx").on(
+      table.opportunityId
+    ),
+    typeIdx: index("OpportunityArtifacts_type_idx").on(table.type),
+    opportunityTypeUnique: uniqueIndex(
+      "OpportunityArtifacts_opportunity_type_unique"
+    ).on(table.opportunityId, table.type),
+  })
+);
+
+export type OpportunityArtifactRow = InferSelectModel<
+  typeof opportunityArtifacts
+>;
+
+export const opportunityDeploymentStages = [
+  "draft",
+  "pr_open",
+  "checks_running",
+  "checks_passed",
+  "ready_to_merge",
+  "merging",
+  "deploying",
+  "deployed",
+  "failed",
+  "cancelled",
+] as const;
+
+export const opportunityDeploymentCheckStatuses = [
+  "pending",
+  "passed",
+  "failed",
+] as const;
+
+export const opportunityDeployments = pgTable(
+  "OpportunityDeployments",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    opportunityId: uuid("opportunityId")
+      .notNull()
+      .references(() => opportunities.id, { onDelete: "cascade" }),
+    artifactId: uuid("artifactId").references(() => opportunityArtifacts.id, {
+      onDelete: "set null",
+    }),
+    stage: varchar("stage", { enum: opportunityDeploymentStages })
+      .notNull()
+      .default("draft"),
+    githubRepo: varchar("githubRepo", { length: 255 }),
+    githubBranch: varchar("githubBranch", { length: 255 }),
+    githubPrNumber: integer("githubPrNumber"),
+    githubPrUrl: text("githubPrUrl"),
+    commitSha: varchar("commitSha", { length: 64 }),
+    checksStatus: varchar("checksStatus", {
+      enum: opportunityDeploymentCheckStatuses,
+    }).default("pending"),
+    checksUrl: text("checksUrl"),
+    vercelProject: varchar("vercelProject", { length: 255 }),
+    vercelDeploymentUrl: text("vercelDeploymentUrl"),
+    vercelPreviewUrl: text("vercelPreviewUrl"),
+    statusMessage: text("statusMessage"),
+    startedAt: timestamp("startedAt"),
+    completedAt: timestamp("completedAt"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => ({
+    opportunityIdx: index("OpportunityDeployments_opportunity_idx").on(
+      table.opportunityId
+    ),
+    stageIdx: index("OpportunityDeployments_stage_idx").on(table.stage),
+    artifactIdx: index("OpportunityDeployments_artifact_idx").on(
+      table.artifactId
+    ),
+  })
+);
+
+export type OpportunityDeploymentRow = InferSelectModel<
+  typeof opportunityDeployments
+>;

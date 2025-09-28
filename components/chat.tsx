@@ -164,11 +164,7 @@ export function Chat({
   return (
     <>
       <div className={containerClassName}>
-        <ChatHeader
-          chatId={id}
-          isReadonly={isReadonly}
-          selectedVisibilityType={initialVisibilityType}
-        />
+        <ChatHeader />
 
         <Messages
           chatId={id}
