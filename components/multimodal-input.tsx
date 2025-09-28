@@ -3,6 +3,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
+import { Mic, MicOff } from "lucide-react";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 import { saveChatModelAsCookie } from "@/app/(chat)/actions";
 import { SelectItem } from "@/components/ui/select";
+import { useVoiceInput } from "@/hooks/use-voice-input";
 import { chatModels } from "@/lib/ai/models";
 import { myProvider } from "@/lib/ai/providers";
 import type { Attachment, ChatMessage } from "@/lib/types";
@@ -98,6 +100,22 @@ function PureMultimodalInput({
     "input",
     ""
   );
+
+  // Voice input functionality
+  const {
+    isListening,
+    toggleListening,
+    isSupported: voiceSupported,
+  } = useVoiceInput({
+    onResult: (transcript) => {
+      setInput(transcript);
+      setLocalStorageInput(transcript);
+    },
+    onError: (error) => {
+      console.error("Voice recognition error:", error);
+      toast.error("Voice recognition failed. Please try again.");
+    },
+  });
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -310,6 +328,23 @@ function PureMultimodalInput({
               selectedModelId={selectedModelId}
               status={status}
             />
+            {voiceSupported && (
+              <Button
+                className={cn(
+                  "size-8 rounded-md p-0 transition-colors",
+                  isListening
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "hover:bg-muted"
+                )}
+                disabled={status === "submitted"}
+                onClick={toggleListening}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+              </Button>
+            )}
             <ModelSelectorCompact
               onModelChange={onModelChange}
               selectedModelId={selectedModelId}
