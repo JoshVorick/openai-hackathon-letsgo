@@ -147,6 +147,35 @@ export function Chat({
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
+  useEffect(() => {
+    const handleKickoff = (event: Event) => {
+      const kickoff = event as CustomEvent<{
+        prompt?: string;
+        source?: string;
+      }>;
+
+      const prompt = kickoff.detail?.prompt?.trim();
+
+      if (!prompt) {
+        return;
+      }
+
+      sendMessage({
+        role: "user" as const,
+        parts: [{ type: "text", text: prompt }],
+      });
+    };
+
+    window.addEventListener("bellhop:kickoff", handleKickoff as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "bellhop:kickoff",
+        handleKickoff as EventListener,
+      );
+    };
+  }, [sendMessage]);
+
   useAutoResume({
     autoResume,
     initialMessages,

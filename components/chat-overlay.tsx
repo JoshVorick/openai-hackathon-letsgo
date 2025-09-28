@@ -28,6 +28,21 @@ export function ChatOverlay({
 }: ChatOverlayProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    const handleKickoff = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener("bellhop:kickoff", handleKickoff as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "bellhop:kickoff",
+        handleKickoff as EventListener,
+      );
+    };
+  }, []);
+
   return (
     <>
       {isOpen && (

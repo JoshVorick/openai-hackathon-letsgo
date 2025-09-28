@@ -29,6 +29,7 @@ import { getRoomRates } from "@/lib/ai/tools/get-room-rates";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { updateHotelSettings } from "@/lib/ai/tools/update-hotel-settings";
 import { updateRateClamps } from "@/lib/ai/tools/update-rate-clamps";
+import { updateServiceClamp } from "@/lib/ai/tools/update-service-clamp";
 import { updateRoomRates } from "@/lib/ai/tools/update-room-rates";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
@@ -194,6 +195,7 @@ export async function POST(request: Request) {
                   "updateRoomRates",
                   "getRateClamps",
                   "updateRateClamps",
+                  "updateServiceClamp",
                   "getHotelSettings",
                   "updateHotelSettings",
                 ],
@@ -221,6 +223,7 @@ export async function POST(request: Request) {
             updateRoomRates,
             getRateClamps,
             updateRateClamps,
+            updateServiceClamp,
             getHotelSettings,
             updateHotelSettings,
           },

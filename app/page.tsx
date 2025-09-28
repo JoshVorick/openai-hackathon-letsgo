@@ -16,8 +16,8 @@ const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 const impactLabels: Record<string, string> = {
-  "hackathon-event": "High impact",
-  "weekend-pricing": "Revenue lift",
+  "weekend-clamp-adjustment": "Revenue lift",
+  "hackathon-marketing": "High impact",
 };
 
 export default function DashboardPage() {
@@ -52,6 +52,18 @@ export default function DashboardPage() {
       tone: "warn" as const,
     },
   ];
+
+  const handleBellhopKickoff = (detail: { prompt: string; source: string }) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("bellhop:kickoff", {
+        detail,
+      }),
+    );
+  };
 
   return (
     <main className="relative flex min-h-screen flex-col bg-neutral-950 text-neutral-50">
@@ -166,15 +178,31 @@ export default function DashboardPage() {
                           </span>
                           <span>ETA: instant deploy</span>
                         </div>
-                        <Button
-                          asChild
-                          className="mt-6 w-full justify-between bg-white text-neutral-900 shadow-sm transition group-hover:bg-neutral-900 group-hover:text-white"
-                        >
-                          <Link href={`/opportunities/${opportunity.id}`}>
-                            <span>{opportunity.ctaLabel}</span>
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                          <Button
+                            className="flex-1 justify-between bg-white text-neutral-900 shadow-sm transition group-hover:bg-neutral-900 group-hover:text-white"
+                            onClick={() =>
+                              handleBellhopKickoff({
+                                prompt: opportunity.llmKickoffPrompt,
+                                source: opportunity.id,
+                              })
+                            }
+                            type="button"
+                          >
+                            <span>{opportunity.llmActionLabel}</span>
                             <ArrowUpRight className="size-4" />
-                          </Link>
-                        </Button>
+                          </Button>
+                          <Button
+                            asChild
+                            className="flex-1 justify-between border border-white/10 bg-transparent text-white transition hover:border-white/30"
+                            variant="secondary"
+                          >
+                            <Link href={`/opportunities/${opportunity.id}`}>
+                              <span>{opportunity.ctaLabel}</span>
+                              <ArrowUpRight className="size-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
