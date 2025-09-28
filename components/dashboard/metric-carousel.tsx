@@ -54,7 +54,7 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
   return (
     <div className={cn("relative", className)}>
       <div
-        className="overflow-hidden rounded-3xl bg-white shadow-sm"
+        className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_20px_60px_-60px_rgba(15,15,15,0.9)] backdrop-blur"
         onPointerDown={(event) => handleStart(event.clientX)}
         onPointerMove={(event) => {
           if (event.buttons === 0) {
@@ -73,7 +73,7 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
         >
           {slides.map((slide, slideIndex) => (
             <div
-              className="w-full shrink-0 px-6 py-6"
+              className="w-full shrink-0 px-8 py-8"
               key={`slide-${slideIndex}`}
             >
               {slide}
@@ -82,12 +82,12 @@ export function MetricCarousel({ slides, className }: MetricCarouselProps) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2">
+      <div className="mt-6 flex items-center justify-center gap-2">
         {slides.map((_, dotIndex) => (
           <span
             className={cn(
-              "h-2.5 w-2.5 rounded-full transition-colors",
-              dotIndex === clampedIndex ? "bg-neutral-900" : "bg-neutral-300"
+              "h-2 w-5 rounded-full transition-all",
+              dotIndex === clampedIndex ? "bg-rose-500" : "bg-neutral-700"
             )}
             key={`dot-${dotIndex}`}
           />

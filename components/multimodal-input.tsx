@@ -1,7 +1,6 @@
 "use client";
 
 import type { UseChatHelpers } from "@ai-sdk/react";
-import { Trigger } from "@radix-ui/react-select";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
 import {
@@ -35,13 +34,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "./elements/prompt-input";
-import {
-  ArrowUpIcon,
-  ChevronDownIcon,
-  CpuIcon,
-  PaperclipIcon,
-  StopIcon,
-} from "./icons";
+import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
 import { SuggestedActions } from "./suggested-actions";
 import { Button } from "./ui/button";
@@ -130,8 +123,6 @@ function PureMultimodalInput({
   const [uploadQueue, setUploadQueue] = useState<string[]>([]);
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, "", `/chat/${chatId}`);
-
     sendMessage({
       role: "user",
       parts: [
@@ -164,7 +155,6 @@ function PureMultimodalInput({
     setAttachments,
     setLocalStorageInput,
     width,
-    chatId,
     resetHeight,
   ]);
 
@@ -426,16 +416,6 @@ function PureModelSelectorCompact({
       }}
       value={selectedModel?.name}
     >
-      <Trigger
-        className="flex h-8 items-center gap-2 rounded-lg border-0 bg-background px-2 text-foreground shadow-none transition-colors hover:bg-accent focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-        type="button"
-      >
-        <CpuIcon size={16} />
-        <span className="hidden font-medium text-xs sm:block">
-          {selectedModel?.name}
-        </span>
-        <ChevronDownIcon size={16} />
-      </Trigger>
       <PromptInputModelSelectContent className="min-w-[260px] p-0">
         <div className="flex flex-col gap-px">
           {chatModels.map((model) => (

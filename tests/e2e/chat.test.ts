@@ -17,13 +17,14 @@ test.describe("Chat activity", () => {
     expect(assistantMessage.content).toContain("It's just green duh!");
   });
 
-  test("Redirect to /chat/:id after submitting message", async () => {
+  test("URL stays on the dashboard after submitting message", async () => {
+    const initialUrl = chatPage.getCurrentURL();
     await chatPage.sendUserMessage("Why is grass green?");
     await chatPage.isGenerationComplete();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toContain("It's just green duh!");
-    await chatPage.hasChatIdInUrl();
+    expect(chatPage.getCurrentURL()).toBe(initialUrl);
   });
 
   test("Send a user message from suggestion", async () => {

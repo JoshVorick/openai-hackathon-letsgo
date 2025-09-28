@@ -25,6 +25,12 @@ import {
   type DBMessage,
   document,
   message,
+  type OpportunityArtifactRow,
+  type OpportunityDeploymentRow,
+  type OpportunityRow,
+  opportunities,
+  opportunityArtifacts,
+  opportunityDeployments,
   type Suggestion,
   stream,
   suggestion,
@@ -195,6 +201,71 @@ export async function getChatsByUserId({
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to get chats by user id"
+    );
+  }
+}
+
+export type OpportunityDetail = {
+  opportunity: OpportunityRow;
+  artifacts: OpportunityArtifactRow[];
+  deployments: OpportunityDeploymentRow[];
+};
+
+export async function getOpportunityDetailBySlug({
+  slug,
+}: {
+  slug: string;
+}): Promise<OpportunityDetail | null> {
+  try {
+    const rows = await db
+      .select({
+        opportunity: opportunities,
+        artifact: opportunityArtifacts,
+        deployment: opportunityDeployments,
+      })
+      .from(opportunities)
+      .leftJoin(
+        opportunityArtifacts,
+        eq(opportunityArtifacts.opportunityId, opportunities.id)
+      )
+      .leftJoin(
+        opportunityDeployments,
+        eq(opportunityDeployments.opportunityId, opportunities.id)
+      )
+      .where(eq(opportunities.slug, slug));
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const { opportunity } = rows[0];
+    const artifactsMap = new Map<string, OpportunityArtifactRow>();
+    const deploymentsMap = new Map<string, OpportunityDeploymentRow>();
+
+    for (const row of rows) {
+      if (row.artifact?.id) {
+        artifactsMap.set(row.artifact.id, row.artifact);
+      }
+      if (row.deployment?.id) {
+        deploymentsMap.set(row.deployment.id, row.deployment);
+      }
+    }
+
+    const deployments = Array.from(deploymentsMap.values()).sort((a, b) => {
+      const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+      const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+      return bTime - aTime;
+    });
+
+    return {
+      opportunity,
+      artifacts: Array.from(artifactsMap.values()),
+      deployments,
+    };
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get opportunity detail"
     );
   }
 }
