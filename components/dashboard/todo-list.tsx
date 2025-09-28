@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-import { Bot, Loader, Mic, MicOff, Trash2 } from "lucide-react";
+import { Bot, Mic, MicOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -270,7 +270,8 @@ export function TodoList() {
                                       window.dispatchEvent(
                                         new CustomEvent("bellhop:kickoff", {
                                           detail: {
-                                            prompt: todo.aiSuggestion.starterQuery,
+                                            prompt:
+                                              todo.aiSuggestion.starterQuery,
                                             source: `todo-${todo.id}`,
                                           },
                                         })

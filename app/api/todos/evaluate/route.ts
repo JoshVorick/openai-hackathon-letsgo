@@ -1,6 +1,6 @@
+import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { generateObject } from "ai";
 
 import { hotelManagementPrompt, regularPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
@@ -31,17 +31,17 @@ export async function POST(request: Request) {
   let payload: unknown;
   try {
     payload = await request.json();
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Invalid JSON body." },
-      { status: 400 }
-    );
+  } catch (_error) {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
   const parseResult = requestSchema.safeParse(payload);
 
   if (!parseResult.success) {
-    return NextResponse.json({ error: "Task text is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Task text is required." },
+      { status: 400 }
+    );
   }
 
   const { text } = parseResult.data;
