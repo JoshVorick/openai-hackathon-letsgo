@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chat } from "@/components/chat";
 import { DataStreamHandler } from "@/components/data-stream-handler";
 import { BellhopMark } from "@/components/icons";
@@ -27,6 +27,21 @@ export function ChatOverlay({
   autoResume = false,
 }: ChatOverlayProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKickoff = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener("bellhop:kickoff", handleKickoff as EventListener);
+
+    return () => {
+      window.removeEventListener(
+        "bellhop:kickoff",
+        handleKickoff as EventListener
+      );
+    };
+  }, []);
 
   return (
     <>

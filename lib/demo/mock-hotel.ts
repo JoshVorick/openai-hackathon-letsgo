@@ -18,6 +18,9 @@ export type Opportunity = {
   title: string;
   description: string;
   ctaLabel: string;
+  llmActionLabel: string;
+  llmKickoffPrompt: string;
+  isSupported: boolean;
   type: "event" | "pricing" | "general";
 };
 
@@ -96,20 +99,28 @@ export function getMockHotelSnapshot(): HotelSnapshot {
     competitorPricing,
     opportunities: [
       {
-        id: "hackathon-event",
-        title: "Attract hackathon attendees",
+        id: "weekend-clamp-adjustment",
+        title: "Adjust weekend clamps and make prices higher",
         description:
-          "An OpenAI hackathon is happening nearby this weekend. I've drafted a landing page and campaign brief to capture the demand.",
-        ctaLabel: "Review and deploy",
-        type: "event",
+          "Saturday ADR can stretch higher—tighten the weekend clamp and raise the rate ceiling so Bellhop can push premium pricing confidently.",
+        ctaLabel: "Opportunity brief",
+        llmActionLabel: "Have Bellhop tighten weekend clamps",
+        llmKickoffPrompt:
+          "You are Bellhop, the AI chief of staff for The Ned located at 1170 Broadway, New York, NY. Review the latest pricing insight: Saturday demand is pacing 12% ahead of last year, and leadership wants higher weekend yield.\n1. Summarize the current clamp and pricing posture so I can explain it back to the GM.\n2. If the plan still holds, tighten the weekend clamp and increase the price ceiling using the available tools.\n   - Before calling updateServiceClamp, briefly note why the clamp is changing and the minimum inputs you will pass.\n   - Before calling updateRateClamps or updateRoomRates, state the goal of the call and the essential parameters you will send.\n3. Confirm the updates you executed and recommend any follow-up analysis I should review.",
+        isSupported: true,
+        type: "pricing",
       },
       {
-        id: "weekend-pricing",
-        title: "Adjust weekend pricing clamps",
+        id: "hackathon-marketing",
+        title: "Market a discount to hackathon attendees",
         description:
-          "Saturday demand is pacing 12% ahead of last year. Consider tightening discounts and raising the ceiling by 8%.",
-        ctaLabel: "Review recommendation",
-        type: "pricing",
+          "Nearby GPT-5 Codex hackers need rooms—spin up an outreach concept that spotlights The Ned and a limited-time code for attendees.",
+        ctaLabel: "Opportunity brief",
+        llmActionLabel: "Have Bellhop hop to it",
+        llmKickoffPrompt:
+          "You are Bellhop supporting The Ned at 1170 Broadway, New York, NY. A GPT-5 Codex hackathon is happening nearby and we want to capture attendee demand.\n1. Summarize any known demand signals or recent occupancy insights relevant to this event.\n2. Brainstorm marketing approaches, including an outreach email to OpenAI or Cerebral Valley event contacts that highlights a special attendee discount at The Ned.\n3. Provide ready-to-send copy (subject line, body, call-to-action) and suggest follow-up channels.\nIf any direct-send tooling is unavailable, clearly note the limitation before wrapping up.",
+        isSupported: true,
+        type: "event",
       },
     ],
   };

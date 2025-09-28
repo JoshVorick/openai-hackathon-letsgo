@@ -67,6 +67,13 @@ async function seedHotelData() {
         type: "room",
         rateLowerUsd: "100.00",
         rateUpperUsd: "750.00",
+        clamp: {
+          target: "weekend",
+          minRate: 100,
+          maxRate: 750,
+          direction: "tighten",
+          notes: "Initial baseline clamp before AI adjustments.",
+        },
       },
     ];
 

@@ -192,12 +192,21 @@ export const companySettings = pgTable("CompanySettings", {
 
 export type CompanySettings = InferSelectModel<typeof companySettings>;
 
+export type ServiceClamp = {
+  target: "weekend" | "weekday" | "all";
+  minRate?: number;
+  maxRate?: number;
+  direction: "tighten" | "loosen";
+  notes?: string;
+};
+
 export const services = pgTable("Services", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull(),
   type: varchar("type", { length: 50 }).notNull().default("room"),
   rateLowerUsd: decimal("rateLowerUsd", { precision: 10, scale: 2 }).notNull(),
   rateUpperUsd: decimal("rateUpperUsd", { precision: 10, scale: 2 }).notNull(),
+  clamp: jsonb("clamp").$type<ServiceClamp | null>(),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

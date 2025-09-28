@@ -30,6 +30,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { updateHotelSettings } from "@/lib/ai/tools/update-hotel-settings";
 import { updateRateClamps } from "@/lib/ai/tools/update-rate-clamps";
 import { updateRoomRates } from "@/lib/ai/tools/update-room-rates";
+import { updateServiceClamp } from "@/lib/ai/tools/update-service-clamp";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -198,6 +199,7 @@ export async function POST(request: Request) {
                   "updateRoomRates",
                   "getRateClamps",
                   "updateRateClamps",
+                  "updateServiceClamp",
                   "getHotelSettings",
                   "updateHotelSettings",
                 ],
@@ -225,6 +227,7 @@ export async function POST(request: Request) {
             updateRoomRates,
             getRateClamps,
             updateRateClamps,
+            updateServiceClamp,
             getHotelSettings,
             updateHotelSettings,
           },

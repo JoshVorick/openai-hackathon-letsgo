@@ -1,99 +1,17 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
-import { ArrowRight, ChevronDown } from "lucide-react";
+"use client";
+import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
+import { Button } from "@/components/ui/button";
 import { BellhopMark } from "@/components/icons";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
-
-type OccupancyDisplay = {
-  date: string;
-  occupancy: number;
-  lastYearOccupancy: number | null;
-};
 
 const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
 });
-
-function formatISODate(date: Date) {
-  return date.toISOString().split("T")[0];
-}
-
-function computeNextWeekRange() {
-  const today = new Date();
-  const start = new Date(today);
-  const daysUntilNextMonday = (8 - start.getDay()) % 7 || 7;
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() + daysUntilNextMonday);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return {
-    start,
-    end,
-    startISO: formatISODate(start),
-    endISO: formatISODate(end),
-  };
-}
-
-async function fetchWeeklyOccupancy(
-  range: ReturnType<typeof computeNextWeekRange>,
-  fallback: OccupancyDisplay[]
-): Promise<OccupancyDisplay[]> {
-  if (!process.env.POSTGRES_URL) {
-    return fallback;
-  }
-
-  try {
-    const { getOccupancyData } = await import(
-      "@/lib/ai/tools/get-occupancy-data"
-    );
-
-    if (!getOccupancyData || typeof getOccupancyData.execute !== "function") {
-      return fallback;
-    }
-
-    const result = await (getOccupancyData as any).execute({
-      startDate: range.startISO,
-      endDate: range.endISO,
-      includeYoYComparison: true,
-    });
-
-    if (
-      !result ||
-      typeof result !== "object" ||
-      ("error" in result && result.error)
-    ) {
-      return fallback;
-    }
-
-    const current = Array.isArray((result as any).current)
-      ? (result as any).current
-      : [];
-    const comparison = Array.isArray((result as any).comparison)
-      ? (result as any).comparison
-      : [];
-
-    if (!current.length) {
-      return fallback;
-    }
-
-    return current.map((day: any, index: number) => ({
-      date: day.date,
-      occupancy: Number(day.occupancyRate ?? day.occupancy ?? 0),
-      lastYearOccupancy: comparison[index]
-        ? Number(
-            comparison[index].occupancyRate ??
-              comparison[index].occupancy ??
-              null
-          )
-        : null,
-    }));
-  } catch {
-    return fallback;
-  }
-}
 
 function getGreeting(date: Date) {
   const hour = date.getHours();
@@ -119,25 +37,22 @@ function getBarColor(value: number) {
   return "#8BD37D";
 }
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const snapshot = getMockHotelSnapshot();
   const greeting = getGreeting(new Date());
   const actionsCount = snapshot.opportunities.length;
-  const range = computeNextWeekRange();
 
-  const fallbackOccupancy: OccupancyDisplay[] = snapshot.occupancy.map(
-    (point, index) => {
-      const base = new Date(range.start);
-      base.setDate(range.start.getDate() + index);
-      return {
-        date: base.toISOString(),
-        occupancy: point.occupancy,
-        lastYearOccupancy: point.lastYearOccupancy,
-      };
+  const handleBellhopKickoff = (detail: { prompt: string; source: string }) => {
+    if (typeof window === "undefined") {
+      return;
     }
-  );
 
-  const occupancy = await fetchWeeklyOccupancy(range, fallbackOccupancy);
+    window.dispatchEvent(
+      new CustomEvent("bellhop:kickoff", {
+        detail,
+      })
+    );
+  };
 
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
@@ -178,13 +93,28 @@ export default async function DashboardPage() {
                 <p className="mt-2 text-[#A59281] text-sm">
                   {opportunity.description}
                 </p>
-                <Link
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#FF922C] px-5 py-2 font-semibold text-[#1D1107] text-sm shadow-[0_16px_30px_rgba(255,146,44,0.45)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
-                  href={`/opportunities/${opportunity.id}`}
-                >
-                  <span>{opportunity.ctaLabel}</span>
-                  <ArrowRight className="size-4" />
-                </Link>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    className="flex-1 justify-between bg-[#FF922C] text-[#1D1107] shadow-[0_16px_30px_rgba(255,146,44,0.45)] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/50"
+                    onClick={() =>
+                      handleBellhopKickoff({
+                        prompt: opportunity.llmKickoffPrompt,
+                        source: opportunity.id,
+                      })
+                    }
+                    type="button"
+                  >
+                    <span>{opportunity.llmActionLabel}</span>
+                    <ArrowUpRight className="size-4" />
+                  </Button>
+                  <Link
+                    className="inline-flex items-center justify-between gap-2 rounded-full border border-[#8F7F71] px-5 py-2 font-semibold text-[#F4EDE5] text-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F7F71]/50"
+                    href={`/opportunities/${opportunity.id}`}
+                  >
+                    <span>{opportunity.ctaLabel}</span>
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
               </article>
             ))}
           </div>
@@ -257,29 +187,26 @@ export default async function DashboardPage() {
 
         <section className="mt-10">
           <h2 className="text-center font-medium text-[#8F7F71] text-sm">
-            Next week’s occupancy
+            Next week's occupancy
           </h2>
           <div className="mt-5 flex items-end justify-between gap-2 rounded-[30px] border border-[#2F241C] bg-[#110D0A] px-5 py-6 shadow-[0_26px_48px_rgba(0,0,0,0.45)]">
-            {occupancy.map((day) => {
-              const current = Math.max(0, Math.min(day.occupancy, 100));
-              const lastYearValue =
-                typeof day.lastYearOccupancy === "number"
-                  ? Math.max(0, Math.min(day.lastYearOccupancy, 100))
-                  : null;
-              const labelDate = new Date(day.date);
+            {snapshot.occupancy.map((point, index) => {
+              const current = Math.max(0, Math.min(point.occupancy, 100));
+              const lastYearValue = Math.max(0, Math.min(point.lastYearOccupancy, 100));
+              const today = new Date();
+              const labelDate = new Date(today);
+              labelDate.setDate(today.getDate() + index);
               return (
                 <div
                   className="flex flex-col items-center gap-2"
-                  key={day.date}
+                  key={point.date}
                 >
                   <div className="relative flex h-32 w-8 items-end justify-center">
-                    {lastYearValue !== null ? (
-                      <span
-                        aria-hidden
-                        className="absolute bottom-0 w-full rounded-full bg-[#362A22]"
-                        style={{ height: `${lastYearValue}%`, opacity: 0.55 }}
-                      />
-                    ) : null}
+                    <span
+                      aria-hidden
+                      className="absolute bottom-0 w-full rounded-full bg-[#362A22]"
+                      style={{ height: `${lastYearValue}%`, opacity: 0.55 }}
+                    />
                     <span
                       className="relative z-10 block w-[70%] rounded-full"
                       style={{
@@ -294,11 +221,9 @@ export default async function DashboardPage() {
                     <span className="font-semibold text-[#F7E8D8] text-xs">
                       {Math.round(current)}%
                     </span>
-                    {lastYearValue !== null ? (
-                      <span className="text-[#8B7B6D] text-[10px]">
-                        LY {Math.round(lastYearValue)}%
-                      </span>
-                    ) : null}
+                    <span className="text-[#8B7B6D] text-[10px]">
+                      LY {Math.round(lastYearValue)}%
+                    </span>
                   </div>
                   <span className="mt-1 font-medium text-[#8B7B6D] text-xs">
                     {weekdayFormatter.format(labelDate)}
