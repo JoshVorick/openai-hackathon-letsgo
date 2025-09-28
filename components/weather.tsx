@@ -206,6 +206,19 @@ export function Weather({
 }: {
   weatherAtLocation?: WeatherAtLocation;
 }) {
+  // Defensive check for missing data
+  if (
+    !weatherAtLocation?.hourly?.temperature_2m ||
+    weatherAtLocation.hourly.temperature_2m.length === 0 ||
+    !weatherAtLocation?.current?.time ||
+    !weatherAtLocation?.daily?.sunrise ||
+    !weatherAtLocation?.daily?.sunset ||
+    !weatherAtLocation?.hourly?.time
+  ) {
+    console.warn("Weather data is incomplete, using sample data");
+    weatherAtLocation = SAMPLE;
+  }
+
   const currentHigh = Math.max(
     ...weatherAtLocation.hourly.temperature_2m.slice(0, 24)
   );
@@ -214,8 +227,8 @@ export function Weather({
   );
 
   const isDay = isWithinInterval(new Date(weatherAtLocation.current.time), {
-    start: new Date(weatherAtLocation.daily.sunrise[0]),
-    end: new Date(weatherAtLocation.daily.sunset[0]),
+    start: new Date(weatherAtLocation.daily.sunrise[0] || "2024-01-01T06:00"),
+    end: new Date(weatherAtLocation.daily.sunset[0] || "2024-01-01T18:00"),
   });
 
   const [isMobile, setIsMobile] = useState(false);
@@ -234,9 +247,12 @@ export function Weather({
   const hoursToShow = isMobile ? 5 : 6;
 
   // Find the index of the current time or the next closest time
-  const currentTimeIndex = weatherAtLocation.hourly.time.findIndex(
+  const rawTimeIndex = weatherAtLocation.hourly.time.findIndex(
     (time) => new Date(time) >= new Date(weatherAtLocation.current.time)
   );
+
+  // Ensure we have a valid index (fallback to 0 if not found)
+  const currentTimeIndex = rawTimeIndex >= 0 ? rawTimeIndex : 0;
 
   // Slice the arrays to get the desired number of items
   const displayTimes = weatherAtLocation.hourly.time.slice(
