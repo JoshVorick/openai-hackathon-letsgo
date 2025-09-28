@@ -18,7 +18,7 @@ export const getRateClamps = tool({
   }),
   execute: async ({ serviceNames }) => {
     try {
-      let query = db
+      const baseQuery = db
         .select({
           serviceId: services.id,
           serviceName: services.name,
@@ -28,11 +28,9 @@ export const getRateClamps = tool({
         .from(services);
 
       // Apply filter if service names are provided
-      if (serviceNames && serviceNames.length > 0) {
-        query = query.where(inArray(services.name, serviceNames));
-      }
-
-      const rateClamps = await query;
+      const rateClamps = serviceNames && serviceNames.length > 0
+        ? await baseQuery.where(inArray(services.name, serviceNames))
+        : await baseQuery;
 
       return {
         rateClamps: rateClamps.map((clamp) => ({

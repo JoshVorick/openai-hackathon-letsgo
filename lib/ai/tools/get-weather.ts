@@ -13,10 +13,10 @@ function getCoordinatesFromAddress(
 ): Promise<{ latitude: number; longitude: number }> {
   // For demo purposes, using The Ned NoMad coordinates
   // In a real app, you'd use a geocoding API like Google Maps or OpenCage
-  return {
+  return Promise.resolve({
     latitude: 40.7455, // The Ned NoMad NYC coordinates
     longitude: -73.9883,
-  };
+  });
 }
 
 export const getWeather = tool({
