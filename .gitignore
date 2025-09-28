@@ -39,6 +39,7 @@ tsconfig.tsbuildinfo
 .vercel
 .env*.local
 claude.md
+CLAUDE.md
 agents.md
 
 # Playwright
