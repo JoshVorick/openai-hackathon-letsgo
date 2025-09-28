@@ -46,6 +46,148 @@ type RevenueComparisonChartProps = {
   className?: string;
 };
 
+const ChartTooltip = ({ active, payload, label, formatValue }: any) => {
+  if (active && payload && payload.length) {
+    const current =
+      payload.find((p: any) => p.dataKey === "currentYear")?.value || 0;
+    const last = payload.find((p: any) => p.dataKey === "lastYear")?.value || 0;
+    const difference = current - last;
+    const percentChange = last > 0 ? (difference / last) * 100 : 0;
+
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+        <p className="font-medium text-gray-900">{label}</p>
+        <div className="mt-2 space-y-1">
+          <p className="text-blue-600">
+            This Year:{" "}
+            <span className="font-semibold">{formatValue(current)}</span>
+          </p>
+          <p className="text-gray-600">
+            Last Year:{" "}
+            <span className="font-semibold">{formatValue(last)}</span>
+          </p>
+          <p
+            className={`font-semibold ${percentChange >= 0 ? "text-green-600" : "text-red-600"}`}
+          >
+            Change: {percentChange >= 0 ? "+" : ""}
+            {percentChange.toFixed(1)}% ({percentChange >= 0 ? "+" : ""}
+            {formatValue(difference)})
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const InternalBarChart = ({
+  data,
+  metric,
+  formatValue,
+}: {
+  data: RevenueDataPoint[];
+  metric: "revenue" | "adr" | "occupancy" | "revpar";
+  formatValue: (value: number) => string;
+}) => (
+  <ResponsiveContainer height={300} width="100%">
+    <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
+      <XAxis
+        className="text-gray-600"
+        dataKey="date"
+        fontSize={12}
+        tickFormatter={(value) => {
+          const date = new Date(value);
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }}
+      />
+      <YAxis
+        className="text-gray-600"
+        fontSize={12}
+        tickFormatter={(value) => {
+          if (metric === "revenue" || metric === "adr" || metric === "revpar") {
+            return `$${(value / 1000).toFixed(0)}K`;
+          }
+          return formatValue(value);
+        }}
+      />
+      <Tooltip content={<ChartTooltip formatValue={formatValue} />} />
+      <Bar
+        dataKey="currentYear"
+        fill="#3b82f6"
+        name="This Year"
+        radius={[2, 2, 0, 0]}
+      />
+      <Bar
+        dataKey="lastYear"
+        fill="#94a3b8"
+        name="Last Year"
+        radius={[2, 2, 0, 0]}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const InternalLineChart = ({
+  data,
+  metric,
+  formatValue,
+}: {
+  data: RevenueDataPoint[];
+  metric: "revenue" | "adr" | "occupancy" | "revpar";
+  formatValue: (value: number) => string;
+}) => (
+  <ResponsiveContainer height={300} width="100%">
+    <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
+      <XAxis
+        className="text-gray-600"
+        dataKey="date"
+        fontSize={12}
+        tickFormatter={(value) => {
+          const date = new Date(value);
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        }}
+      />
+      <YAxis
+        className="text-gray-600"
+        fontSize={12}
+        tickFormatter={(value) => {
+          if (metric === "revenue" || metric === "adr" || metric === "revpar") {
+            return `$${(value / 1000).toFixed(0)}K`;
+          }
+          return formatValue(value);
+        }}
+      />
+      <Tooltip content={<ChartTooltip formatValue={formatValue} />} />
+      <Line
+        activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
+        dataKey="currentYear"
+        dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+        name="This Year"
+        stroke="#3b82f6"
+        strokeWidth={3}
+        type="monotone"
+      />
+      <Line
+        dataKey="lastYear"
+        dot={{ fill: "#94a3b8", strokeWidth: 2, r: 3 }}
+        name="Last Year"
+        stroke="#94a3b8"
+        strokeDasharray="5 5"
+        strokeWidth={2}
+        type="monotone"
+      />
+    </LineChart>
+  </ResponsiveContainer>
+);
+
 export function RevenueComparisonChart({
   data,
   title,
@@ -110,147 +252,6 @@ export function RevenueComparisonChart({
   const { change, isPositive, totalCurrent, totalLast } =
     calculateTotalChange();
 
-  const ChartTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const current =
-        payload.find((p: any) => p.dataKey === "currentYear")?.value || 0;
-      const last =
-        payload.find((p: any) => p.dataKey === "lastYear")?.value || 0;
-      const difference = current - last;
-      const percentChange = last > 0 ? (difference / last) * 100 : 0;
-
-      return (
-        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-          <p className="font-medium text-gray-900">{label}</p>
-          <div className="mt-2 space-y-1">
-            <p className="text-blue-600">
-              This Year:{" "}
-              <span className="font-semibold">{formatValue(current)}</span>
-            </p>
-            <p className="text-gray-600">
-              Last Year:{" "}
-              <span className="font-semibold">{formatValue(last)}</span>
-            </p>
-            <p
-              className={`font-semibold ${percentChange >= 0 ? "text-green-600" : "text-red-600"}`}
-            >
-              Change: {percentChange >= 0 ? "+" : ""}
-              {percentChange.toFixed(1)}% ({percentChange >= 0 ? "+" : ""}
-              {formatValue(difference)})
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const InternalBarChart = () => (
-    <ResponsiveContainer height={300} width="100%">
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
-        <XAxis
-          className="text-gray-600"
-          dataKey="date"
-          fontSize={12}
-          tickFormatter={(value) => {
-            const date = new Date(value);
-            return date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            });
-          }}
-        />
-        <YAxis
-          className="text-gray-600"
-          fontSize={12}
-          tickFormatter={(value) => {
-            if (
-              metric === "revenue" ||
-              metric === "adr" ||
-              metric === "revpar"
-            ) {
-              return `$${(value / 1000).toFixed(0)}K`;
-            }
-            return formatValue(value);
-          }}
-        />
-        <Tooltip content={<ChartTooltip />} />
-        <Bar
-          dataKey="currentYear"
-          fill="#3b82f6"
-          name="This Year"
-          radius={[2, 2, 0, 0]}
-        />
-        <Bar
-          dataKey="lastYear"
-          fill="#94a3b8"
-          name="Last Year"
-          radius={[2, 2, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-
-  const InternalLineChart = () => (
-    <ResponsiveContainer height={300} width="100%">
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid className="stroke-gray-200" strokeDasharray="3 3" />
-        <XAxis
-          className="text-gray-600"
-          dataKey="date"
-          fontSize={12}
-          tickFormatter={(value) => {
-            const date = new Date(value);
-            return date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            });
-          }}
-        />
-        <YAxis
-          className="text-gray-600"
-          fontSize={12}
-          tickFormatter={(value) => {
-            if (
-              metric === "revenue" ||
-              metric === "adr" ||
-              metric === "revpar"
-            ) {
-              return `$${(value / 1000).toFixed(0)}K`;
-            }
-            return formatValue(value);
-          }}
-        />
-        <Tooltip content={<ChartTooltip />} />
-        <Line
-          activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
-          dataKey="currentYear"
-          dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-          name="This Year"
-          stroke="#3b82f6"
-          strokeWidth={3}
-          type="monotone"
-        />
-        <Line
-          dataKey="lastYear"
-          dot={{ fill: "#94a3b8", strokeWidth: 2, r: 3 }}
-          name="Last Year"
-          stroke="#94a3b8"
-          strokeDasharray="5 5"
-          strokeWidth={2}
-          type="monotone"
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-
   return (
     <Card className={`w-full max-w-full ${className}`}>
       <CardHeader className="px-3 py-3">
@@ -313,11 +314,19 @@ export function RevenueComparisonChart({
           </TabsList>
 
           <TabsContent className="mt-4" value="bar">
-            <InternalBarChart />
+            <InternalBarChart
+              data={data}
+              formatValue={formatValue}
+              metric={metric}
+            />
           </TabsContent>
 
           <TabsContent className="mt-4" value="line">
-            <InternalLineChart />
+            <InternalLineChart
+              data={data}
+              formatValue={formatValue}
+              metric={metric}
+            />
           </TabsContent>
         </Tabs>
 
