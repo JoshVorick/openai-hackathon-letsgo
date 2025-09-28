@@ -2,7 +2,6 @@
 "use client";
 import { ArrowRight, ArrowUpRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
 import { BellhopMark } from "@/components/icons";
@@ -198,11 +197,6 @@ export default function DashboardPage() {
                 })}
               </div>
             </div>,
-            <CompetitorPricingChart
-              className=""
-              data={snapshot.competitorPricing}
-              key="competitor-pricing"
-            />,
           ]}
         />
 

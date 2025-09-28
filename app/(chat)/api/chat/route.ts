@@ -29,6 +29,7 @@ import { getOccupancyData } from "@/lib/ai/tools/get-occupancy-data";
 import { getRateClamps } from "@/lib/ai/tools/get-rate-clamps";
 import { getRoomRates } from "@/lib/ai/tools/get-room-rates";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import { getPricingSop } from "@/lib/ai/tools/get-pricing-sop";
 import { updateHotelSettings } from "@/lib/ai/tools/update-hotel-settings";
 import { updateRateClamps } from "@/lib/ai/tools/update-rate-clamps";
 import { updateRoomRates } from "@/lib/ai/tools/update-room-rates";
@@ -204,6 +205,7 @@ export async function POST(request: Request) {
                   "updateServiceClamp",
                   "getHotelSettings",
                   "updateHotelSettings",
+                  "getPricingSop",
                   "analyzePricingOpportunities",
                   "executePricingAction",
                 ],
@@ -234,6 +236,7 @@ export async function POST(request: Request) {
             updateServiceClamp,
             getHotelSettings,
             updateHotelSettings,
+            getPricingSop,
             analyzePricingOpportunities,
             executePricingAction,
           },
