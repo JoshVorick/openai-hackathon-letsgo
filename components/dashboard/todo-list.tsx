@@ -197,12 +197,10 @@ export function TodoList() {
 
   return (
     <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-white/8 via-white/6 to-white/10 ring-1 ring-white/10 backdrop-blur-xl">
-      <div
-        className="flex w-full cursor-pointer items-center justify-between p-6 sm:p-8"
+      <button
+        className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent p-6 text-left sm:p-8"
         onClick={() => setIsExpanded(!isExpanded)}
-        onKeyDown={(e) => e.key === "Enter" && setIsExpanded(!isExpanded)}
-        role="button"
-        tabIndex={0}
+        type="button"
       >
         <div className="flex items-center gap-3">
           <h2 className="font-semibold text-neutral-50 text-xl">
@@ -217,7 +215,7 @@ export function TodoList() {
         <div className="px-3 py-1 font-medium text-neutral-300 text-sm transition-colors hover:text-neutral-50">
           {isExpanded ? "−" : "+"}
         </div>
-      </div>
+      </button>
 
       {isExpanded && (
         <div className="space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
