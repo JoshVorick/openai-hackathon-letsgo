@@ -38,25 +38,25 @@ export function DataStreamHandler() {
           return { ...initialArtifactData, status: "streaming" };
         }
 
-        switch (delta.type) {
+        switch ((delta as any).type) {
           case "data-id":
             return {
               ...draftArtifact,
-              documentId: delta.data,
+              documentId: (delta as any).data,
               status: "streaming",
             };
 
           case "data-title":
             return {
               ...draftArtifact,
-              title: delta.data,
+              title: (delta as any).data,
               status: "streaming",
             };
 
           case "data-kind":
             return {
               ...draftArtifact,
-              kind: delta.data,
+              kind: (delta as any).data,
               status: "streaming",
             };
 
