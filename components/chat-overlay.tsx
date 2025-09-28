@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Chat } from "@/components/chat";
 import { DataStreamHandler } from "@/components/data-stream-handler";
-import { BellIcon } from "@/components/icons";
+import { BellhopMark } from "@/components/icons";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import type { VisibilityType } from "@/components/visibility-selector";
 import type { ChatMessage } from "@/lib/types";
@@ -74,11 +74,16 @@ export function ChatOverlay({
         <button
           aria-expanded={isOpen}
           aria-label={isOpen ? "Hide Copilot chat" : "Open Copilot chat"}
-          className="pointer-events-auto fixed right-4 bottom-4 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_12px_24px_-12px_rgba(15,15,15,0.6)] transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="group pointer-events-auto fixed right-6 bottom-6 inline-flex h-16 w-16 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF922C]/40"
           onClick={() => setIsOpen((prev) => !prev)}
           type="button"
         >
-          <BellIcon />
+          <span className="relative inline-flex h-full w-full items-center justify-center">
+            <span className="-z-10 absolute inset-0 rounded-full bg-[#FF922C]/50 opacity-90 blur-xl transition group-hover:opacity-100" />
+            <span className="relative flex h-full w-full items-center justify-center rounded-full bg-[#FF922C] shadow-[0_12px_30px_rgba(255,146,44,0.4)] transition group-hover:scale-[1.03]">
+              <BellhopMark className="h-6 w-6 text-white" />
+            </span>
+          </span>
         </button>
       </div>
     </>
