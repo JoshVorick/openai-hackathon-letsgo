@@ -27,7 +27,7 @@ export const myProvider = isTestEnvironment
       languageModels: {
         "chat-model": openai("gpt-4o"),
         "chat-model-reasoning": wrapLanguageModel({
-          model: openai("o1-preview"),
+          model: openai("gpt-4o-mini"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
         "title-model": openai("gpt-4o-mini"),
