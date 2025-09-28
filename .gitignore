@@ -32,6 +32,9 @@ yarn-error.log*
 # turbo
 .turbo
 
+# TypeScript
+tsconfig.tsbuildinfo
+
 .env
 .vercel
 .env*.local

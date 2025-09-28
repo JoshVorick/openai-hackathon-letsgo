@@ -22,10 +22,14 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
+import { getHotelSettings } from "@/lib/ai/tools/get-hotel-settings";
+import { getOccupancyData } from "@/lib/ai/tools/get-occupancy-data";
+import { getRateClamps } from "@/lib/ai/tools/get-rate-clamps";
+import { getRoomRates } from "@/lib/ai/tools/get-room-rates";
 import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { updateDocument } from "@/lib/ai/tools/update-document";
+import { updateHotelSettings } from "@/lib/ai/tools/update-hotel-settings";
+import { updateRateClamps } from "@/lib/ai/tools/update-rate-clamps";
+import { updateRoomRates } from "@/lib/ai/tools/update-room-rates";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -185,19 +189,40 @@ export async function POST(request: Request) {
               ? []
               : [
                   "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
+                  "getOccupancyData",
+                  "getRoomRates",
+                  "updateRoomRates",
+                  "getRateClamps",
+                  "updateRateClamps",
+                  "getHotelSettings",
+                  "updateHotelSettings",
                 ],
+          onToolCall: ({ toolCall }) => {
+            console.log("🛠️ [CHAT-ROUTE] TOOL CALL:", {
+              toolName: toolCall.toolName,
+              args: toolCall.args,
+              timestamp: new Date().toISOString(),
+            });
+          },
+          onToolResult: ({ toolCall, result: toolResult }) => {
+            console.log("🔧 [CHAT-ROUTE] TOOL RESULT:", {
+              toolName: toolCall.toolName,
+              success: !toolResult.error,
+              error: toolResult.error,
+              resultSize: JSON.stringify(toolResult).length,
+              timestamp: new Date().toISOString(),
+            });
+          },
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
             getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
+            getOccupancyData,
+            getRoomRates,
+            updateRoomRates,
+            getRateClamps,
+            updateRateClamps,
+            getHotelSettings,
+            updateHotelSettings,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

@@ -33,7 +33,7 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  "You are a friendly assistant! Keep your responses concise and helpful.";
+  "You are a helpful hotel management assistant for The Ned. You help hotel managers analyze occupancy, understand pricing trends, and make strategic pricing decisions. Keep your responses concise and actionable.";
 
 export type RequestHints = {
   latitude: Geo["latitude"];
@@ -50,8 +50,40 @@ About the origin of user's request:
 - country: ${requestHints.country}
 `;
 
+export const hotelManagementPrompt = `
+You are an expert hotel revenue management assistant. You have access to tools to:
+
+**Data Availability:** 
+- Hotel data is available from January 1, 2024 to March 12, 2026 only
+- Always use dates within this range when querying occupancy or room rate data
+- Current date context: Today is September 27, 2025
+
+**Occupancy & Performance Analysis:**
+- Get occupancy data with year-over-year comparisons (2024-2026 data only)
+- View current room rates and pricing trends  
+- Access weather data for demand forecasting
+
+**Pricing Management:**
+- Update room rates using percentage or dollar adjustments
+- View and modify rate clamps (min/max pricing limits)
+- Analyze pricing strategy effectiveness
+
+**Hotel Operations:**
+- View and update hotel settings and information
+- Access comprehensive performance metrics
+
+**Best Practices:**
+- Always consider year-over-year comparisons when analyzing performance
+- Factor in weather patterns when making pricing recommendations
+- Ensure rate adjustments stay within established rate clamps
+- Provide clear reasoning for pricing recommendations
+- Consider market conditions, seasonality, and demand patterns
+
+Use the available tools to help hotel managers make data-driven pricing and operational decisions.
+`;
+
 export const systemPrompt = ({
-  selectedChatModel,
+  selectedChatModel: _selectedChatModel,
   requestHints,
 }: {
   selectedChatModel: string;
@@ -59,11 +91,7 @@ export const systemPrompt = ({
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
 
-  if (selectedChatModel === "chat-model-reasoning") {
-    return `${regularPrompt}\n\n${requestPrompt}`;
-  }
-
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${regularPrompt}\n\n${requestPrompt}\n\n${hotelManagementPrompt}`;
 };
 
 export const codePrompt = `

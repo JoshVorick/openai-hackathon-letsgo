@@ -1,11 +1,13 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
-import type { ArtifactKind } from "@/components/artifact";
-import type { createDocument } from "./ai/tools/create-document";
+import type { getHotelSettings } from "./ai/tools/get-hotel-settings";
+import type { getOccupancyData } from "./ai/tools/get-occupancy-data";
+import type { getRateClamps } from "./ai/tools/get-rate-clamps";
+import type { getRoomRates } from "./ai/tools/get-room-rates";
 import type { getWeather } from "./ai/tools/get-weather";
-import type { requestSuggestions } from "./ai/tools/request-suggestions";
-import type { updateDocument } from "./ai/tools/update-document";
-import type { Suggestion } from "./db/schema";
+import type { updateHotelSettings } from "./ai/tools/update-hotel-settings";
+import type { updateRateClamps } from "./ai/tools/update-rate-clamps";
+import type { updateRoomRates } from "./ai/tools/update-room-rates";
 import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };
@@ -17,31 +19,26 @@ export const messageMetadataSchema = z.object({
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 type weatherTool = InferUITool<typeof getWeather>;
-type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
-type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
-type requestSuggestionsTool = InferUITool<
-  ReturnType<typeof requestSuggestions>
->;
+type getOccupancyDataTool = InferUITool<typeof getOccupancyData>;
+type getRoomRatesTool = InferUITool<typeof getRoomRates>;
+type updateRoomRatesTool = InferUITool<typeof updateRoomRates>;
+type getRateClampsTool = InferUITool<typeof getRateClamps>;
+type updateRateClampsTool = InferUITool<typeof updateRateClamps>;
+type getHotelSettingsTool = InferUITool<typeof getHotelSettings>;
+type updateHotelSettingsTool = InferUITool<typeof updateHotelSettings>;
 
 export type ChatTools = {
   getWeather: weatherTool;
-  createDocument: createDocumentTool;
-  updateDocument: updateDocumentTool;
-  requestSuggestions: requestSuggestionsTool;
+  getOccupancyData: getOccupancyDataTool;
+  getRoomRates: getRoomRatesTool;
+  updateRoomRates: updateRoomRatesTool;
+  getRateClamps: getRateClampsTool;
+  updateRateClamps: updateRateClampsTool;
+  getHotelSettings: getHotelSettingsTool;
+  updateHotelSettings: updateHotelSettingsTool;
 };
 
 export type CustomUIDataTypes = {
-  textDelta: string;
-  imageDelta: string;
-  sheetDelta: string;
-  codeDelta: string;
-  suggestion: Suggestion;
-  appendMessage: string;
-  id: string;
-  title: string;
-  kind: ArtifactKind;
-  clear: null;
-  finish: null;
   usage: AppUsage;
 };
 
