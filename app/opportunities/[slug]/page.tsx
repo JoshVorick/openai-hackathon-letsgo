@@ -3,18 +3,18 @@ import { format } from "date-fns";
 import {
   ArrowLeft,
   CalendarDays,
-  ExternalLink,
   GaugeCircle,
   Info,
   Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-import { ConfirmDeploymentButton } from "@/components/opportunity/confirm-deployment-button";
+import {
+  OpportunityWorkspace,
+  type StageStep,
+} from "@/components/opportunity/opportunity-workspace";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   getOpportunityDetailBySlug,
   type OpportunityDetail,
@@ -94,8 +94,7 @@ export default async function OpportunityPage({
     notFound();
   }
 
-  const { opportunity, artifacts, deployments } = detail;
-  const primaryArtifact = artifacts[0] ?? null;
+  const { opportunity, deployments } = detail;
   const latestDeployment = deployments[0] ?? null;
 
   const confidenceValue = opportunity.confidence
@@ -113,13 +112,15 @@ export default async function OpportunityPage({
   const confirmDisabled =
     readyToMergeIndex !== -1 && currentStageIndex > readyToMergeIndex;
 
-  const stageTimeline = stageOrder.map((stage, index) => {
-    const status =
-      index < currentStageIndex
-        ? "complete"
-        : index === currentStageIndex
-          ? "active"
-          : "upcoming";
+  const stageTimeline: StageStep[] = stageOrder.map((stage, index) => {
+    let status: StageStep["status"];
+    if (index < currentStageIndex) {
+      status = "complete";
+    } else if (index === currentStageIndex) {
+      status = "active";
+    } else {
+      status = "upcoming";
+    }
 
     const description =
       index === currentStageIndex && latestDeployment?.statusMessage
@@ -133,6 +134,12 @@ export default async function OpportunityPage({
       description,
     };
   });
+
+  const landingDefaults = {
+    slug: "openai-codex-hackathon",
+    title: "Hackers, You're Home",
+    body: "The GPT-5 Codex Hackathon is around the corner, and The Ned is ready to host your crew. Keep the team minutes from the event, with flexible workspaces, restorative suites, and on-demand room service between pushes. Secure your block and unlock late checkout plus welcome cocktails for your hackers tonight.",
+  } as const;
 
   return (
     <main className="flex min-h-screen w-full flex-col bg-[#050403] pt-10 pb-16 text-[#F4EDE5] sm:pt-16">
@@ -243,144 +250,50 @@ export default async function OpportunityPage({
                 ) : null}
               </CardContent>
             </Card>
+            {focusMetric ? (
+              <Card className="border-[#32261C] bg-[#18120C]">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 font-semibold text-[#8F7F71] text-sm uppercase tracking-wide">
+                    <GaugeCircle className="size-4" /> Focus metric
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-[#B8A695]">
+                  <p>
+                    We're prioritising this opportunity because{" "}
+                    {focusMetric.name ?? "occupancy"} is trailing last year.
+                  </p>
+                  <div className="flex items-baseline gap-6 rounded-2xl bg-[#1B140F] px-4 py-5">
+                    <div>
+                      <p className="font-semibold text-[#8F7F71] text-xs uppercase tracking-wide">
+                        Current
+                      </p>
+                      <p className="font-semibold text-2xl text-[#FDF3E3]">
+                        {Math.round((focusMetric.current ?? 0) * 100)}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#8F7F71] text-xs uppercase tracking-wide">
+                        Last year
+                      </p>
+                      <p className="font-semibold text-2xl text-[#B8A695]">
+                        {Math.round((focusMetric.lastYear ?? 0) * 100)}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-6 lg:flex-row">
-          <section className="flex-1 rounded-3xl border border-[#2F241B] bg-[#14100C] p-6 shadow-[0_28px_50px_rgba(0,0,0,0.45)] sm:p-8">
-            <header className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-[#F5DCC0] text-xl">
-                  Preview the landing page
-                </h2>
-                <p className="text-[#8F7F71] text-sm">
-                  Generated draft hosted on Vercel. Tweak copy and layout before
-                  deployment.
-                </p>
-              </div>
-              {primaryArtifact?.previewUrl ? (
-                <Link
-                  className="inline-flex items-center gap-1 font-medium text-[#B8A695] text-sm transition hover:text-[#F5DCC0]"
-                  href={primaryArtifact.previewUrl}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  View in new tab
-                  <ExternalLink className="size-4" />
-                </Link>
-              ) : null}
-            </header>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-[#35281E] bg-[#0E0A07]">
-              {primaryArtifact?.previewUrl ? (
-                <iframe
-                  allow="clipboard-write; encrypted-media; picture-in-picture"
-                  className="h-[480px] w-full border-0"
-                  src={primaryArtifact.previewUrl}
-                  title="Landing page preview"
-                />
-              ) : (
-                <div className="flex h-[320px] items-center justify-center text-[#6F6054]">
-                  No preview available yet.
-                </div>
-              )}
-            </div>
-          </section>
-
-          <aside className="w-full max-w-lg space-y-6">
-            <section className="rounded-3xl border border-[#2F241B] bg-[#14100C] p-6 shadow-[0_28px_50px_rgba(0,0,0,0.45)] sm:p-8">
-              <header className="flex items-center justify-between">
-                <h2 className="font-semibold text-[#F5DCC0] text-lg">
-                  Deployment status
-                </h2>
-                <span className="font-medium text-[#B8A695] text-sm">
-                  {titleCase(currentStage)}
-                </span>
-              </header>
-              <div className="mt-4 space-y-3">
-                <Progress className="h-2 bg-[#241A13]" value={stageProgress} />
-                <ul className="space-y-2">
-                  {stageTimeline.map((step) => (
-                    <li
-                      className="flex items-start gap-3 rounded-xl bg-[#1B140F] px-3 py-2"
-                      key={step.stage}
-                    >
-                      <div
-                        className={`mt-1 size-2 rounded-full ${
-                          step.status === "complete"
-                            ? "bg-[#34D399]"
-                            : step.status === "active"
-                              ? "bg-[#F59E0B]"
-                              : "bg-[#3C2E24]"
-                        }`}
-                      />
-                      <div>
-                        <p className="font-medium text-[#F4EDE5] text-sm">
-                          {step.label}
-                        </p>
-                        {step.description ? (
-                          <p className="text-[#8F7F71] text-xs">
-                            {step.description}
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-
-            <section className="rounded-3xl border border-[#2F241B] bg-[#14100C] p-6 shadow-[0_28px_50px_rgba(0,0,0,0.45)] sm:p-8">
-              <h2 className="font-semibold text-[#F5DCC0] text-lg">
-                Ready to launch?
-              </h2>
-              <p className="mt-2 text-[#8F7F71] text-sm">
-                Approving will create a PR, run automated tests, and deploy the
-                landing page once checks pass. You'll see live status updates
-                here.
-              </p>
-              <div className="mt-4 flex flex-col gap-3">
-                <ConfirmDeploymentButton
-                  disabled={confirmDisabled}
-                  opportunityId={opportunity.id}
-                />
-                <p className="text-[#7A6A5C] text-xs">
-                  Need changes? Chat with the copilot or leave feedback directly
-                  in the draft artifact.
-                </p>
-              </div>
-            </section>
-
-            {focusMetric ? (
-              <section className="rounded-3xl border border-[#2F241B] bg-[#14100C] p-6 shadow-[0_28px_50px_rgba(0,0,0,0.45)] sm:p-8">
-                <h2 className="font-semibold text-[#F5DCC0] text-lg">
-                  Focus metric
-                </h2>
-                <p className="mt-2 text-[#8F7F71] text-sm">
-                  We're prioritising this opportunity because the metric below
-                  is underperforming versus last year.
-                </p>
-                <div className="mt-4 flex items-baseline gap-4 rounded-2xl bg-[#1B140F] px-4 py-5">
-                  <div>
-                    <p className="font-semibold text-[#8F7F71] text-xs uppercase tracking-wide">
-                      Current
-                    </p>
-                    <p className="font-semibold text-2xl text-[#FDF3E3]">
-                      {Math.round((focusMetric.current ?? 0) * 100)}%
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[#8F7F71] text-xs uppercase tracking-wide">
-                      Last year
-                    </p>
-                    <p className="font-semibold text-2xl text-[#B8A695]">
-                      {Math.round((focusMetric.lastYear ?? 0) * 100)}%
-                    </p>
-                  </div>
-                </div>
-              </section>
-            ) : null}
-          </aside>
-        </div>
+        <OpportunityWorkspace
+          confirmDisabled={confirmDisabled}
+          currentStageLabel={titleCase(currentStage)}
+          landingDefaults={landingDefaults}
+          opportunityId={opportunity.id}
+          stageProgress={stageProgress}
+          stageTimeline={stageTimeline}
+        />
       </div>
     </main>
   );
