@@ -1,9 +1,8 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 import { ArrowRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
-
+import { TodoList } from "@/components/dashboard/todo-list";
 import { TaskBoard } from "@/components/dashboard/your-todos";
-
 import { BellhopMark } from "@/components/icons";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
 
@@ -266,6 +265,8 @@ export default async function DashboardPage() {
           initialBellhopTodos={initialBellhopTodos}
           initialUserTodos={initialUserTodos}
         />
+
+        <TodoList />
       </div>
     </main>
   );
