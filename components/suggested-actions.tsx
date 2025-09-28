@@ -13,11 +13,11 @@ type SuggestedActionsProps = {
   selectedVisibilityType: VisibilityType;
 };
 
-function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
+function PureSuggestedActions({ sendMessage }: SuggestedActionsProps) {
   const suggestedActions = [
-    "What events are happening nearby soon?",
+    "Tell me about the current occupancy.",
     "How is this month's occupancy tracking?",
-    "Help me figure out the biggest missed opportunities in pricing?",
+    "Help me figure out the biggest missed opportunities in pricing.",
     "What are the best pricing strategies for the upcoming weekend?",
   ];
 
@@ -37,7 +37,6 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
           <Suggestion
             className="h-auto w-full whitespace-normal p-4 text-left"
             onClick={(suggestion) => {
-              window.history.replaceState({}, "", `/chat/${chatId}`);
               sendMessage({
                 role: "user",
                 parts: [{ type: "text", text: suggestion }],

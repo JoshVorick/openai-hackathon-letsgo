@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
 
@@ -122,13 +124,13 @@ export default function DashboardPage() {
                 <p className="mt-2 text-neutral-600 text-sm leading-relaxed lg:text-base">
                   {opportunity.description}
                 </p>
-                <button
-                  className="mt-4 inline-flex w-full items-center justify-between rounded-xl bg-neutral-900 px-4 py-3 font-medium text-sm text-white transition hover:bg-neutral-800 lg:text-base"
-                  type="button"
+                <Link
+                  className="hover:-translate-y-0.5 mt-4 inline-flex w-full items-center justify-between rounded-xl bg-neutral-900 px-4 py-3 font-medium text-sm text-white transition hover:bg-neutral-800 lg:text-base"
+                  href={`/opportunities/${opportunity.id}`}
                 >
                   <span>{opportunity.ctaLabel}</span>
                   <span aria-hidden>→</span>
-                </button>
+                </Link>
               </article>
             ))}
           </div>
