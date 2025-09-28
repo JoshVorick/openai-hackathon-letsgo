@@ -265,7 +265,8 @@ const PurePreviewMessage = ({
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error creating document: {String((part as any).output.error)}
+                    Error creating document:{" "}
+                    {String((part as any).output.error)}
                   </div>
                 );
               }
@@ -288,7 +289,8 @@ const PurePreviewMessage = ({
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
                     key={toolCallId}
                   >
-                    Error updating document: {String((part as any).output.error)}
+                    Error updating document:{" "}
+                    {String((part as any).output.error)}
                   </div>
                 );
               }
