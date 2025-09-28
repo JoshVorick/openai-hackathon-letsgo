@@ -1,7 +1,9 @@
 // Theme palettes for light + dark variants are tracked in ref/theme-variants.md
 "use client";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { ArrowRight, ArrowUpRight, ChevronDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { CompetitorPricingChart } from "@/components/dashboard/competitor-pricing-chart";
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
 import { TodoList } from "@/components/dashboard/todo-list";
 import { BellhopMark } from "@/components/icons";
@@ -129,13 +131,6 @@ export default function DashboardPage() {
                         <ArrowUpRight className="size-4" />
                       </Button>
                     )}
-                    <Link
-                      className="inline-flex w-full items-center justify-between gap-2 rounded-full border border-[#8F7F71] px-5 py-2 font-semibold text-[#F4EDE5] text-sm transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F7F71]/50"
-                      href={detailHref}
-                    >
-                      <span>{opportunity.ctaLabel}</span>
-                      <ArrowRight className="size-4" />
-                    </Link>
                   </div>
                 </article>
               );
@@ -197,6 +192,11 @@ export default function DashboardPage() {
                 })}
               </div>
             </div>,
+            <CompetitorPricingChart
+              className=""
+              data={snapshot.competitorPricing}
+              key="competitor-pricing"
+            />,
           ]}
         />
 

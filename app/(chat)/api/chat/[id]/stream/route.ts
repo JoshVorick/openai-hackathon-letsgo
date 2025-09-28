@@ -100,6 +100,7 @@ export async function GET(
           messageMetadata: {
             createdAt: new Date(mostRecentMessage.createdAt).toISOString(),
           },
+          transient: true,
         });
       },
     });
