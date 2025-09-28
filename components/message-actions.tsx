@@ -1,8 +1,10 @@
 import equal from "fast-deep-equal";
+import { Volume2, VolumeX } from "lucide-react";
 import { memo } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { useCopyToClipboard } from "usehooks-ts";
+import { useVoiceOutput } from "@/hooks/use-voice-output";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { Action, Actions } from "./elements/actions";
@@ -24,6 +26,19 @@ export function PureMessageActions({
   const { mutate } = useSWRConfig();
   const [_, copyToClipboard] = useCopyToClipboard();
 
+  // Voice output functionality
+  const {
+    speak,
+    stop,
+    isSpeaking,
+    isSupported: voiceSupported,
+  } = useVoiceOutput({
+    onError: (error) => {
+      console.error("Voice synthesis error:", error);
+      toast.error("Voice synthesis failed. Please try again.");
+    },
+  });
+
   if (isLoading) {
     return null;
   }
@@ -42,6 +57,19 @@ export function PureMessageActions({
 
     await copyToClipboard(textFromParts);
     toast.success("Copied to clipboard!");
+  };
+
+  const handleVoiceToggle = () => {
+    if (!textFromParts) {
+      toast.error("There's no text to speak!");
+      return;
+    }
+
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(textFromParts);
+    }
   };
 
   // User messages get edit (on hover) and copy actions
@@ -71,6 +99,15 @@ export function PureMessageActions({
       <Action onClick={handleCopy} tooltip="Copy">
         <CopyIcon />
       </Action>
+
+      {voiceSupported && textFromParts && (
+        <Action
+          onClick={handleVoiceToggle}
+          tooltip={isSpeaking ? "Stop speaking" : "Read aloud"}
+        >
+          {isSpeaking ? <VolumeX /> : <Volume2 />}
+        </Action>
+      )}
 
       <Action
         data-testid="message-upvote"
