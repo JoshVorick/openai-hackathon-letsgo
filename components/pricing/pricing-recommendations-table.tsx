@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -13,7 +13,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,15 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 type PricingRecommendation = {
   id: string;
@@ -89,38 +79,6 @@ export function PricingRecommendationsTable({
     }
   };
 
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  const getRiskBadgeColor = (risk: string) => {
-    switch (risk) {
-      case "low":
-        return "default";
-      case "medium":
-        return "secondary";
-      case "high":
-        return "destructive";
-      default:
-        return "default";
-    }
-  };
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-
   return (
     <Card className="w-full max-w-full">
       <CardHeader className="px-3 py-3">
@@ -136,9 +94,11 @@ export function PricingRecommendationsTable({
         {/* Compact Card View - Always shown in chat context */}
         <div className="space-y-2">
           {recommendations.map((rec) => (
-            <div key={rec.id} className="rounded border bg-gray-50 p-2">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-sm truncate">{rec.roomType}</span>
+            <div className="rounded border bg-gray-50 p-2" key={rec.id}>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="truncate font-medium text-sm">
+                  {rec.roomType}
+                </span>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
@@ -151,12 +111,22 @@ export function PricingRecommendationsTable({
                   </AlertDialogTrigger>
                   <AlertDialogContent className="max-w-sm">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-base">Confirm Rate Change</AlertDialogTitle>
+                      <AlertDialogTitle className="text-base">
+                        Confirm Rate Change
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
                         <div className="space-y-2 text-sm">
-                          <div><strong>Room:</strong> {rec.roomType}</div>
-                          <div><strong>Change:</strong> ${rec.currentRate} → ${rec.recommendedRate}</div>
-                          <div><strong>Increase:</strong> +{rec.increasePercentage.toFixed(1)}%</div>
+                          <div>
+                            <strong>Room:</strong> {rec.roomType}
+                          </div>
+                          <div>
+                            <strong>Change:</strong> ${rec.currentRate} → $
+                            {rec.recommendedRate}
+                          </div>
+                          <div>
+                            <strong>Increase:</strong> +
+                            {rec.increasePercentage.toFixed(1)}%
+                          </div>
                           <div className="text-blue-700">{rec.reasoning}</div>
                         </div>
                       </AlertDialogDescription>
@@ -175,24 +145,34 @@ export function PricingRecommendationsTable({
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-gray-600">Current:</span> <span className="font-medium">${rec.currentRate}</span>
+                  <span className="text-gray-600">Current:</span>{" "}
+                  <span className="font-medium">${rec.currentRate}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Target:</span> <span className="font-medium text-green-600">${rec.recommendedRate}</span>
+                  <span className="text-gray-600">Target:</span>{" "}
+                  <span className="font-medium text-green-600">
+                    ${rec.recommendedRate}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Increase:</span> <span className="font-medium text-green-600">+{rec.increasePercentage.toFixed(0)}%</span>
+                  <span className="text-gray-600">Increase:</span>{" "}
+                  <span className="font-medium text-green-600">
+                    +{rec.increasePercentage.toFixed(0)}%
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Confidence:</span> <span className="font-medium">{(rec.confidence * 100).toFixed(0)}%</span>
+                  <span className="text-gray-600">Confidence:</span>{" "}
+                  <span className="font-medium">
+                    {(rec.confidence * 100).toFixed(0)}%
+                  </span>
                 </div>
               </div>
               <div className="mt-2 text-xs">
                 <span className="text-gray-600">Revenue:</span>
                 <span className="ml-1 font-medium text-green-600">
-                  {rec.projectedRevenue.weekly?.replace('/week', '/wk') ||
-                   rec.projectedRevenue.monthly?.replace('/month', '/mo') ||
-                   rec.projectedRevenue.event}
+                  {rec.projectedRevenue.weekly?.replace("/week", "/wk") ||
+                    rec.projectedRevenue.monthly?.replace("/month", "/mo") ||
+                    rec.projectedRevenue.event}
                 </span>
               </div>
             </div>
@@ -205,7 +185,6 @@ export function PricingRecommendationsTable({
             <p className="text-xs">No pricing opportunities found.</p>
           </div>
         )}
-
       </CardContent>
     </Card>
   );

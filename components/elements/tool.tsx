@@ -23,7 +23,10 @@ export type ToolProps = ComponentProps<typeof Collapsible>;
 
 export const Tool = ({ className, ...props }: ToolProps) => (
   <Collapsible
-    className={cn("not-prose mb-4 w-full rounded-md border", className)}
+    className={cn(
+      "not-prose mb-4 w-full max-w-full overflow-hidden rounded-md border",
+      className
+    )}
     {...props}
   />
 );
@@ -89,7 +92,7 @@ export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
 export const ToolContent = ({ className, ...props }: ToolContentProps) => (
   <CollapsibleContent
     className={cn(
-      "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-hidden data-[state=closed]:animate-out data-[state=open]:animate-in",
+      "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 max-w-full overflow-hidden text-popover-foreground outline-hidden data-[state=closed]:animate-out data-[state=open]:animate-in",
       className
     )}
     {...props}
@@ -133,7 +136,7 @@ export const ToolOutput = ({
       </h4>
       <div
         className={cn(
-          "overflow-x-auto rounded-md text-xs [&_table]:w-full",
+          "overflow-hidden rounded-md text-xs [&_table]:w-full [&_table]:max-w-full [&_table]:table-fixed [&_td]:truncate [&_td]:px-1 [&_td]:text-xs [&_th]:truncate [&_th]:px-1 [&_th]:text-xs",
           errorText
             ? "bg-destructive/10 text-destructive"
             : "bg-muted/50 text-foreground"
