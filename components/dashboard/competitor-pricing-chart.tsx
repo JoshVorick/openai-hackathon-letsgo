@@ -1,20 +1,20 @@
 "use client";
 
-import * as React from "react";
+import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { CompetitorPricePoint } from "@/lib/demo/mock-hotel";
+import type { CompetitorPricePoint } from "@/lib/demo/mock-hotel";
 
-interface CompetitorPricingChartProps {
+type CompetitorPricingChartProps = {
   data: CompetitorPricePoint[];
   className?: string;
-}
+};
 
 // Transform the data for Recharts format
 function transformDataForChart(data: CompetitorPricePoint[]) {
@@ -52,12 +52,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function CompetitorPricingChart({ data, className = "" }: CompetitorPricingChartProps) {
-  const chartData = React.useMemo(() => transformDataForChart(data), [data]);
+export function CompetitorPricingChart({
+  data,
+  className = "",
+}: CompetitorPricingChartProps) {
+  const chartData = useMemo(() => transformDataForChart(data), [data]);
 
   if (!data || data.length === 0) {
     return (
-      <div className={`flex items-center justify-center h-64 text-neutral-400 ${className}`}>
+      <div
+        className={`flex h-64 items-center justify-center text-neutral-400 ${className}`}
+      >
         No pricing data available
       </div>
     );
@@ -79,7 +84,10 @@ export function CompetitorPricingChart({ data, className = "" }: CompetitorPrici
         </span>
       </div>
 
-      <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+      <ChartContainer
+        className="aspect-auto h-[250px] w-full"
+        config={chartConfig}
+      >
         <LineChart
           accessibilityLayer
           data={chartData}
@@ -90,10 +98,8 @@ export function CompetitorPricingChart({ data, className = "" }: CompetitorPrici
         >
           <CartesianGrid vertical={false} />
           <XAxis
-            dataKey="date"
-            tickLine={false}
             axisLine={false}
-            tickMargin={8}
+            dataKey="date"
             minTickGap={32}
             tickFormatter={(value) => {
               const date = new Date(value);
@@ -102,6 +108,8 @@ export function CompetitorPricingChart({ data, className = "" }: CompetitorPrici
                 day: "numeric",
               });
             }}
+            tickLine={false}
+            tickMargin={8}
           />
           <ChartTooltip
             content={
@@ -120,59 +128,68 @@ export function CompetitorPricingChart({ data, className = "" }: CompetitorPrici
           />
           <Line
             dataKey="yourPrice"
-            type="monotone"
+            dot={false}
             stroke="var(--color-yourPrice)"
             strokeWidth={3}
-            dot={false}
+            type="monotone"
           />
           <Line
             dataKey="competitor1"
-            type="monotone"
+            dot={false}
             stroke="var(--color-competitor1)"
             strokeWidth={2}
-            dot={false}
+            type="monotone"
           />
           <Line
             dataKey="competitor2"
-            type="monotone"
+            dot={false}
             stroke="var(--color-competitor2)"
             strokeWidth={2}
-            dot={false}
+            type="monotone"
           />
           <Line
             dataKey="competitor3"
-            type="monotone"
+            dot={false}
             stroke="var(--color-competitor3)"
             strokeWidth={2}
-            dot={false}
+            type="monotone"
           />
           <Line
             dataKey="competitor4"
-            type="monotone"
+            dot={false}
             stroke="var(--color-competitor4)"
             strokeWidth={2}
-            dot={false}
+            type="monotone"
           />
         </LineChart>
       </ChartContainer>
 
       {/* Simple legend */}
       <div className="flex flex-wrap gap-4 text-xs">
-        {(Object.keys(chartConfig) as Array<keyof typeof chartConfig>).map((key) => (
-          <div key={key} className="flex items-center gap-2">
-            <div
-              className="w-3 h-0.5 rounded"
-              style={{ backgroundColor: `var(--color-${key})` }}
-            />
-            <span className={key === 'yourPrice' ? "text-neutral-200 font-medium" : "text-neutral-400"}>
-              {chartConfig[key].label}
-            </span>
-          </div>
-        ))}
+        {(Object.keys(chartConfig) as Array<keyof typeof chartConfig>).map(
+          (key) => (
+            <div className="flex items-center gap-2" key={key}>
+              <div
+                className="h-0.5 w-3 rounded"
+                style={{ backgroundColor: `var(--color-${key})` }}
+              />
+              <span
+                className={
+                  key === "yourPrice"
+                    ? "font-medium text-neutral-200"
+                    : "text-neutral-400"
+                }
+              >
+                {chartConfig[key].label}
+              </span>
+            </div>
+          )
+        )}
       </div>
 
       <p className="text-neutral-400 text-xs">
-        The Ned pricing is shown in blue. Competitor hotel rates are displayed for comparison across the 90-day forward outlook.
+        The Ned pricing is shown in blue. Competitor hotel rates are displayed
+        for comparison across the 90-day forward outlook.
       </p>
     </div>
   );

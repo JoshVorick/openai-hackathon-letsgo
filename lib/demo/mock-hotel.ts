@@ -45,35 +45,48 @@ export function getMockHotelSnapshot(): HotelSnapshot {
   });
 
   // Generate competitor pricing data for next 90 days
-  const competitorPricing: CompetitorPricePoint[] = Array.from({ length: 90 }, (_, index) => {
-    const current = new Date(today);
-    current.setDate(today.getDate() + index);
+  const competitorPricing: CompetitorPricePoint[] = Array.from(
+    { length: 90 },
+    (_, index) => {
+      const current = new Date(today);
+      current.setDate(today.getDate() + index);
 
-    // Base prices with some variation
-    const baseYourPrice = 320;
-    const baseComp1 = 380; // Higher-end competitor
-    const baseComp2 = 350; // Similar level
-    const baseComp3 = 290; // Budget competitor
-    const baseComp4 = 410; // Luxury competitor
+      // Base prices with some variation
+      const baseYourPrice = 320;
+      const baseComp1 = 380; // Higher-end competitor
+      const baseComp2 = 350; // Similar level
+      const baseComp3 = 290; // Budget competitor
+      const baseComp4 = 410; // Luxury competitor
 
-    // Add seasonal and day-of-week variations
-    const dayOfWeek = current.getDay();
-    const isWeekend = dayOfWeek === 5 || dayOfWeek === 6; // Friday/Saturday
-    const weekendMultiplier = isWeekend ? 1.15 : 1.0;
+      // Add seasonal and day-of-week variations
+      const dayOfWeek = current.getDay();
+      const isWeekend = dayOfWeek === 5 || dayOfWeek === 6; // Friday/Saturday
+      const weekendMultiplier = isWeekend ? 1.15 : 1.0;
 
-    // Add some randomness and trends
-    const trendFactor = 1 + (index / 360); // Slight upward trend
-    const randomVariation = 0.9 + Math.random() * 0.2; // ±10% variation
+      // Add some randomness and trends
+      const trendFactor = 1 + index / 360; // Slight upward trend
+      const randomVariation = 0.9 + Math.random() * 0.2; // ±10% variation
 
-    return {
-      date: current.toISOString(),
-      yourPrice: Math.round(baseYourPrice * weekendMultiplier * trendFactor * randomVariation),
-      competitor1: Math.round(baseComp1 * weekendMultiplier * trendFactor * randomVariation),
-      competitor2: Math.round(baseComp2 * weekendMultiplier * trendFactor * randomVariation),
-      competitor3: Math.round(baseComp3 * weekendMultiplier * trendFactor * randomVariation),
-      competitor4: Math.round(baseComp4 * weekendMultiplier * trendFactor * randomVariation),
-    };
-  });
+      return {
+        date: current.toISOString(),
+        yourPrice: Math.round(
+          baseYourPrice * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor1: Math.round(
+          baseComp1 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor2: Math.round(
+          baseComp2 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor3: Math.round(
+          baseComp3 * weekendMultiplier * trendFactor * randomVariation
+        ),
+        competitor4: Math.round(
+          baseComp4 * weekendMultiplier * trendFactor * randomVariation
+        ),
+      };
+    }
+  );
 
   return {
     name: "The Ned",
