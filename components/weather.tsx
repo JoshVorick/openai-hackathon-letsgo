@@ -42,6 +42,68 @@ type WeatherAtLocation = {
   };
 };
 
+type WeatherSummary = {
+  error?: string;
+  location?: {
+    address?: string;
+    coordinates?: { latitude: number; longitude: number };
+  };
+  current?: {
+    date?: string;
+    temperature?: number | null;
+    temperatureMax?: number | null;
+    temperatureMin?: number | null;
+    weatherCode?: number | null;
+    windSpeed?: number | null;
+  };
+  historical?: {
+    date?: string;
+    temperatureMax?: number | null;
+    temperatureMin?: number | null;
+  } | null;
+  comparison?: {
+    temperatureMaxChange?: number | null;
+    temperatureMinChange?: number | null;
+  } | null;
+};
+
+const isWeatherDataset = (value: unknown): value is WeatherAtLocation => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<WeatherAtLocation>;
+  return (
+    Array.isArray(candidate.hourly?.temperature_2m) &&
+    Array.isArray(candidate.hourly?.time) &&
+    candidate.hourly.temperature_2m.length === candidate.hourly.time.length &&
+    typeof candidate.current?.temperature_2m === "number" &&
+    Array.isArray(candidate.daily?.sunrise) &&
+    Array.isArray(candidate.daily?.sunset) &&
+    candidate.daily.sunrise.length > 0 &&
+    candidate.daily.sunset.length > 0
+  );
+};
+
+const isWeatherSummary = (value: unknown): value is WeatherSummary => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as WeatherSummary;
+
+  if (typeof candidate.error === "string") {
+    return true;
+  }
+
+  return (
+    !!candidate.current &&
+    (typeof candidate.current.temperature === "number" ||
+      typeof candidate.current.temperatureMax === "number" ||
+      typeof candidate.current.temperatureMin === "number")
+  );
+};
+
 const SAMPLE = {
   latitude: 37.763_283,
   longitude: -122.412_86,
@@ -202,21 +264,18 @@ function n(num: number): number {
 }
 
 export function Weather({
-  weatherAtLocation = SAMPLE,
+  weatherAtLocation,
 }: {
-  weatherAtLocation?: WeatherAtLocation;
+  weatherAtLocation?: WeatherAtLocation | WeatherSummary | null;
 }) {
-  const currentHigh = Math.max(
-    ...weatherAtLocation.hourly.temperature_2m.slice(0, 24)
-  );
-  const currentLow = Math.min(
-    ...weatherAtLocation.hourly.temperature_2m.slice(0, 24)
-  );
-
-  const isDay = isWithinInterval(new Date(weatherAtLocation.current.time), {
-    start: new Date(weatherAtLocation.daily.sunrise[0]),
-    end: new Date(weatherAtLocation.daily.sunset[0]),
-  });
+  const dataset = isWeatherDataset(weatherAtLocation)
+    ? weatherAtLocation
+    : !weatherAtLocation && isWeatherDataset(SAMPLE)
+      ? SAMPLE
+      : null;
+  const summary = isWeatherSummary(weatherAtLocation)
+    ? (weatherAtLocation as WeatherSummary)
+    : null;
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -231,81 +290,200 @@ export function Weather({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const hoursToShow = isMobile ? 5 : 6;
+  if (dataset) {
+    const currentHigh = Math.max(
+      ...dataset.hourly.temperature_2m.slice(0, 24)
+    );
+    const currentLow = Math.min(
+      ...dataset.hourly.temperature_2m.slice(0, 24)
+    );
 
-  // Find the index of the current time or the next closest time
-  const currentTimeIndex = weatherAtLocation.hourly.time.findIndex(
-    (time) => new Date(time) >= new Date(weatherAtLocation.current.time)
-  );
+    const isDay = isWithinInterval(new Date(dataset.current.time), {
+      start: new Date(dataset.daily.sunrise[0]),
+      end: new Date(dataset.daily.sunset[0]),
+    });
 
-  // Slice the arrays to get the desired number of items
-  const displayTimes = weatherAtLocation.hourly.time.slice(
-    currentTimeIndex,
-    currentTimeIndex + hoursToShow
-  );
-  const displayTemperatures = weatherAtLocation.hourly.temperature_2m.slice(
-    currentTimeIndex,
-    currentTimeIndex + hoursToShow
-  );
+    const hoursToShow = isMobile ? 5 : 6;
 
-  return (
-    <div
-      className={cx(
-        "skeleton-bg flex max-w-[500px] flex-col gap-4 rounded-2xl p-4",
-        {
-          "bg-blue-400": isDay,
-        },
-        {
-          "bg-indigo-900": !isDay,
-        }
-      )}
-    >
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-row items-center gap-2">
-          <div
-            className={cx(
-              "skeleton-div size-10 rounded-full",
-              {
-                "bg-yellow-300": isDay,
-              },
-              {
-                "bg-indigo-100": !isDay,
-              }
-            )}
-          />
-          <div className="font-medium text-4xl text-blue-50">
-            {n(weatherAtLocation.current.temperature_2m)}
-            {weatherAtLocation.current_units.temperature_2m}
-          </div>
-        </div>
+    const currentTimeIndex = dataset.hourly.time.findIndex(
+      (time) => new Date(time) >= new Date(dataset.current.time)
+    );
+    const startIndex = currentTimeIndex === -1 ? 0 : currentTimeIndex;
 
-        <div className="text-blue-50">{`H:${n(currentHigh)}° L:${n(currentLow)}°`}</div>
-      </div>
+    const displayTimes = dataset.hourly.time.slice(
+      startIndex,
+      startIndex + hoursToShow
+    );
+    const displayTemperatures = dataset.hourly.temperature_2m.slice(
+      startIndex,
+      startIndex + hoursToShow
+    );
 
-      <div className="flex flex-row justify-between">
-        {displayTimes.map((time, index) => (
-          <div className="flex flex-col items-center gap-1" key={time}>
-            <div className="text-blue-100 text-xs">
-              {format(new Date(time), "ha")}
-            </div>
+    return (
+      <div
+        className={cx(
+          "skeleton-bg flex max-w-[500px] flex-col gap-4 rounded-2xl p-4",
+          {
+            "bg-blue-400": isDay,
+          },
+          {
+            "bg-indigo-900": !isDay,
+          }
+        )}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
             <div
               className={cx(
-                "skeleton-div size-6 rounded-full",
+                "skeleton-div size-10 rounded-full",
                 {
                   "bg-yellow-300": isDay,
                 },
                 {
-                  "bg-indigo-200": !isDay,
+                  "bg-indigo-100": !isDay,
                 }
               )}
             />
-            <div className="text-blue-50 text-sm">
-              {n(displayTemperatures[index])}
-              {weatherAtLocation.hourly_units.temperature_2m}
+            <div>
+              <p className="text-white text-sm font-semibold">
+                {format(new Date(dataset.current.time), "EEEE, MMM d")}
+              </p>
+              <h2 className="text-white text-4xl font-bold">
+                {n(dataset.current.temperature_2m)}
+                {dataset.current_units.temperature_2m}
+              </h2>
+              <p className="text-white/75 text-sm">
+                High {n(currentHigh)}° · Low {n(currentLow)}°
+              </p>
             </div>
           </div>
-        ))}
+          <div className="text-right text-white text-sm">
+            <p>Sunrise {format(new Date(dataset.daily.sunrise[0]), "p")}</p>
+            <p>Sunset {format(new Date(dataset.daily.sunset[0]), "p")}</p>
+            <p>Feels like {n(dataset.current.temperature_2m)}°</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {displayTimes.map((time, idx) => (
+            <div
+              className={cx(
+                "flex flex-1 flex-col items-center gap-1 rounded-lg bg-white/15 p-2 text-white text-xs",
+                {
+                  "bg-white/30": idx === 0,
+                }
+              )}
+              key={time}
+            >
+              <span className="font-medium">
+                {idx === 0 ? "Now" : format(new Date(time), "ha")}
+              </span>
+              <span>{n(displayTemperatures[idx])}°</span>
+            </div>
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  if (summary) {
+    if (summary.error) {
+      return (
+        <div className="rounded-xl border border-border/60 bg-muted/40 p-4 text-sm">
+          {summary.error}
+        </div>
+      );
+    }
+
+    const { current, historical, comparison, location } = summary;
+
+    return (
+      <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+        <div className="flex flex-col gap-3 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-sm">
+                {current?.date
+                  ? format(new Date(current.date), "EEEE, MMM d")
+                  : "Current conditions"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {location?.address ?? "Hotel location"}
+              </p>
+            </div>
+            {typeof current?.temperature === "number" && (
+              <p className="text-2xl font-semibold">
+                {n(current.temperature)}°
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-md bg-background p-3">
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                Today
+              </p>
+              <p className="text-sm">
+                High {formatTemp(current?.temperatureMax)} · Low {formatTemp(current?.temperatureMin)}
+              </p>
+              {typeof current?.windSpeed === "number" && (
+                <p className="text-muted-foreground text-xs">
+                  Wind {Math.round(current.windSpeed)} km/h
+                </p>
+              )}
+            </div>
+
+            {historical && (
+              <div className="rounded-md bg-background p-3">
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                  Same day last year
+                </p>
+                <p className="text-sm">
+                  High {formatTemp(historical.temperatureMax)} · Low {formatTemp(historical.temperatureMin)}
+                </p>
+              </div>
+            )}
+
+            {comparison && (
+              <div className="rounded-md bg-background p-3">
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">
+                  Change vs last year
+                </p>
+                <p className="text-sm">
+                  Max {formatDelta(comparison.temperatureMaxChange)} · Min {formatDelta(comparison.temperatureMinChange)}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (weatherAtLocation && typeof weatherAtLocation === "object" && "error" in (weatherAtLocation as any)) {
+    return (
+      <div className="rounded-xl border border-border/60 bg-muted/40 p-4 text-sm">
+        {(weatherAtLocation as { error?: string }).error ??
+          "Weather data is currently unavailable."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/40 p-4 text-sm">
+      Weather data is currently unavailable for this request.
     </div>
   );
 }
+
+const formatTemp = (value: number | null | undefined) =>
+  typeof value === "number" && !Number.isNaN(value) ? `${n(value)}°` : "—";
+
+const formatDelta = (value: number | null | undefined) => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "—";
+  }
+
+  const rounded = Math.round(value * 10) / 10;
+  return `${rounded > 0 ? "+" : ""}${rounded}°`;
+};
