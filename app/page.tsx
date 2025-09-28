@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { MetricCarousel } from "@/components/dashboard/metric-carousel";
+import { TodoList } from "@/components/dashboard/todo-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getMockHotelSnapshot } from "@/lib/demo/mock-hotel";
@@ -344,6 +345,8 @@ export default function DashboardPage() {
             </div>,
           ]}
         />
+
+        <TodoList />
       </div>
     </main>
   );
