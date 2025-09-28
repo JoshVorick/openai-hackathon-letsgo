@@ -117,6 +117,20 @@ export default function PricingStrategyPage() {
     }
   };
 
+  const handleSamplePricingPrompt = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("bellhop:kickoff", {
+          detail: {
+            prompt:
+              "What should my price be for Friday, Oct 3, 2025 6 days out when my occupancy is 60%, Hilton is $120/night and Marriott is $180/night base rate?",
+            source: "pricing-strategy-sample",
+          },
+        })
+      );
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#050403] text-[#F4EDE5]">
       <div className="mx-auto flex min-h-screen w-full max-w-sm flex-col px-3 pt-10 pb-28 sm:px-4">
@@ -390,6 +404,7 @@ Examples:
           </Button>
           <Button
             className="w-full border-[#8F7F71] bg-transparent text-[#F4E9DA] hover:bg-[#1A1410] hover:text-[#F4E9DA]"
+            onClick={handleSamplePricingPrompt}
             size="lg"
             variant="outline"
           >
