@@ -1,5 +1,7 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
+import type { analyzePricingOpportunities } from "./ai/tools/analyze-pricing-opportunities";
+import type { executePricingAction } from "./ai/tools/execute-pricing-action";
 import type { getHotelSettings } from "./ai/tools/get-hotel-settings";
 import type { getOccupancyData } from "./ai/tools/get-occupancy-data";
 import type { getRateClamps } from "./ai/tools/get-rate-clamps";
@@ -26,6 +28,10 @@ type getRateClampsTool = InferUITool<typeof getRateClamps>;
 type updateRateClampsTool = InferUITool<typeof updateRateClamps>;
 type getHotelSettingsTool = InferUITool<typeof getHotelSettings>;
 type updateHotelSettingsTool = InferUITool<typeof updateHotelSettings>;
+type analyzePricingOpportunitiesTool = InferUITool<
+  typeof analyzePricingOpportunities
+>;
+type executePricingActionTool = InferUITool<typeof executePricingAction>;
 
 export type ChatTools = {
   getWeather: weatherTool;
@@ -36,6 +42,8 @@ export type ChatTools = {
   updateRateClamps: updateRateClampsTool;
   getHotelSettings: getHotelSettingsTool;
   updateHotelSettings: updateHotelSettingsTool;
+  analyzePricingOpportunities: analyzePricingOpportunitiesTool;
+  executePricingAction: executePricingActionTool;
 };
 
 export type CustomUIDataTypes = {
