@@ -83,7 +83,7 @@ Use the available tools to help hotel managers make data-driven pricing and oper
 `;
 
 export const systemPrompt = ({
-  selectedChatModel,
+  selectedChatModel: _selectedChatModel,
   requestHints,
 }: {
   selectedChatModel: string;

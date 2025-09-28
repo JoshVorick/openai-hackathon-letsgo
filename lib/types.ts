@@ -1,14 +1,13 @@
 import type { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
-import type { ArtifactKind } from "@/components/artifact";
-import type { getWeather } from "./ai/tools/get-weather";
-import type { getOccupancyData } from "./ai/tools/get-occupancy-data";
-import type { getRoomRates } from "./ai/tools/get-room-rates";
-import type { updateRoomRates } from "./ai/tools/update-room-rates";
-import type { getRateClamps } from "./ai/tools/get-rate-clamps";
-import type { updateRateClamps } from "./ai/tools/update-rate-clamps";
 import type { getHotelSettings } from "./ai/tools/get-hotel-settings";
+import type { getOccupancyData } from "./ai/tools/get-occupancy-data";
+import type { getRateClamps } from "./ai/tools/get-rate-clamps";
+import type { getRoomRates } from "./ai/tools/get-room-rates";
+import type { getWeather } from "./ai/tools/get-weather";
 import type { updateHotelSettings } from "./ai/tools/update-hotel-settings";
+import type { updateRateClamps } from "./ai/tools/update-rate-clamps";
+import type { updateRoomRates } from "./ai/tools/update-room-rates";
 import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };

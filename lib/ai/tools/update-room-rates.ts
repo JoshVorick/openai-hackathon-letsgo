@@ -56,16 +56,15 @@ export const updateRoomRates = tool({
           // set_to
           updateSql = sql`${roomRates.priceUsd} * (${adjustment.value} / 100)`;
         }
+      } else if (adjustment.operation === "increase") {
+        // fixed_amount increase
+        updateSql = sql`${roomRates.priceUsd} + ${adjustment.value}`;
+      } else if (adjustment.operation === "decrease") {
+        // fixed_amount decrease
+        updateSql = sql`${roomRates.priceUsd} - ${adjustment.value}`;
       } else {
-        // fixed_amount
-        if (adjustment.operation === "increase") {
-          updateSql = sql`${roomRates.priceUsd} + ${adjustment.value}`;
-        } else if (adjustment.operation === "decrease") {
-          updateSql = sql`${roomRates.priceUsd} - ${adjustment.value}`;
-        } else {
-          // set_to
-          updateSql = sql`${adjustment.value}`;
-        }
+        // fixed_amount set_to
+        updateSql = sql`${adjustment.value}`;
       }
 
       // Count affected rows first

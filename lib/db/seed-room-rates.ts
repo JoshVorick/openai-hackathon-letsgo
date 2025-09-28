@@ -1,8 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { config } from "dotenv";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { readFileSync } from "fs";
-import { join } from "path";
 import postgres from "postgres";
 import { roomRates, rooms, services } from "./schema";
 
@@ -14,7 +14,7 @@ const db = drizzle(client);
 function parseNewTsvFormat(filePath: string) {
   const content = readFileSync(filePath, "utf-8");
   const lines = content.trim().split("\n");
-  
+
   if (lines.length < 2) {
     throw new Error("TSV file must have at least a header and one data row");
   }
@@ -22,7 +22,7 @@ function parseNewTsvFormat(filePath: string) {
   // Parse header - expects "Date\tThe Ned NoMad"
   const headerLine = lines[0];
   const headerParts = headerLine.split("\t");
-  
+
   if (headerParts.length !== 2 || headerParts[0] !== "Date") {
     throw new Error("Header must be 'Date\\tThe Ned NoMad'");
   }
@@ -32,11 +32,13 @@ function parseNewTsvFormat(filePath: string) {
 
   // Parse data rows
   const ratePairs: Array<{ date: string; price: number }> = [];
-  
+
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line) continue; // Skip empty lines
-    
+    if (!line) {
+      continue; // Skip empty lines
+    }
+
     const parts = line.split("\t");
     if (parts.length !== 2) {
       console.warn(`Skipping malformed line ${i}: ${line}`);
@@ -51,14 +53,14 @@ function parseNewTsvFormat(filePath: string) {
     const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 
     const price = Number.parseFloat(priceStr);
-    if (isNaN(price)) {
+    if (Number.isNaN(price)) {
       console.warn(`Skipping invalid price on line ${i}: ${priceStr}`);
       continue;
     }
 
     ratePairs.push({
       date: formattedDate,
-      price: price,
+      price,
     });
   }
 

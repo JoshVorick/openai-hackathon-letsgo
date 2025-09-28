@@ -10,11 +10,17 @@ async function testYoYComparison() {
     startDate: "2025-10-09",
     endDate: "2025-10-11", // Just 3 days for quick test
     includeYoYComparison: true,
-    asOfDate: "2025-09-27"
+    asOfDate: "2025-09-27",
   });
 
-  console.log("Current (2025):", result.current?.map(d => `${d.date}: ${d.occupancyRate}%`));
-  console.log("Historical (2024):", result.comparison?.map(d => `${d.date}: ${d.occupancyRate}%`));
+  console.log(
+    "Current (2025):",
+    result.current?.map((d) => `${d.date}: ${d.occupancyRate}%`)
+  );
+  console.log(
+    "Historical (2024):",
+    result.comparison?.map((d) => `${d.date}: ${d.occupancyRate}%`)
+  );
   console.log("Summary:", result.summary);
 }
 

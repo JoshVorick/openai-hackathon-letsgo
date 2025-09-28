@@ -198,19 +198,19 @@ export async function POST(request: Request) {
                   "updateHotelSettings",
                 ],
           onToolCall: ({ toolCall }) => {
-            console.log('🛠️ [CHAT-ROUTE] TOOL CALL:', {
+            console.log("🛠️ [CHAT-ROUTE] TOOL CALL:", {
               toolName: toolCall.toolName,
               args: toolCall.args,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             });
           },
-          onToolResult: ({ toolCall, result }) => {
-            console.log('🔧 [CHAT-ROUTE] TOOL RESULT:', {
+          onToolResult: ({ toolCall, result: toolResult }) => {
+            console.log("🔧 [CHAT-ROUTE] TOOL RESULT:", {
               toolName: toolCall.toolName,
-              success: !result.error,
-              error: result.error,
-              resultSize: JSON.stringify(result).length,
-              timestamp: new Date().toISOString()
+              success: !toolResult.error,
+              error: toolResult.error,
+              resultSize: JSON.stringify(toolResult).length,
+              timestamp: new Date().toISOString(),
             });
           },
           experimental_transform: smoothStream({ chunking: "word" }),

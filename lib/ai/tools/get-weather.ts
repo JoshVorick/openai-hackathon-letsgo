@@ -9,7 +9,7 @@ const db = drizzle(client);
 
 // Function to get coordinates from address using a geocoding service
 function getCoordinatesFromAddress(
-  address: string
+  _address: string
 ): Promise<{ latitude: number; longitude: number }> {
   // For demo purposes, using The Ned NoMad coordinates
   // In a real app, you'd use a geocoding API like Google Maps or OpenCage

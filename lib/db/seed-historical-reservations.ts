@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { eq, lt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { roomRates } from "./schema";
@@ -15,46 +15,50 @@ function isWeekend(date: Date): boolean {
 }
 
 function getBookingRate(stayDate: Date, today: Date): number {
-  const daysDifference = Math.floor((stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysDifference = Math.floor(
+    (stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
   const isWeekendDay = isWeekend(stayDate);
-  
+
   // Historical dates (past)
   if (daysDifference < 0) {
     return isWeekendDay ? 0.9 : 0.6; // 90% weekend, 60% weekday
   }
-  
+
   // Future dates - decreasing rates
   if (daysDifference <= 7) {
     // Sept 27 - Oct 4: 50% base rate
     return isWeekendDay ? 0.6 : 0.5; // Weekend boost still applies
-  } else if (daysDifference <= 31) {
-    // Rest of October: 20% base rate  
+  }
+  if (daysDifference <= 31) {
+    // Rest of October: 20% base rate
     return isWeekendDay ? 0.3 : 0.2;
-  } else if (daysDifference <= 90) {
+  }
+  if (daysDifference <= 90) {
     // November-December: 10% base rate
     return isWeekendDay ? 0.15 : 0.1;
-  } else {
-    // Far future: 5% base rate
-    return isWeekendDay ? 0.08 : 0.05;
   }
+  // Far future: 5% base rate
+  return isWeekendDay ? 0.08 : 0.05;
 }
 
 function getRandomBookingDate(stayDate: Date, today: Date): string {
-  const daysDifference = Math.floor((stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  
+  const daysDifference = Math.floor(
+    (stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
   if (daysDifference < 0) {
     // Historical: booking was 0-90 days before stay date
     const daysBeforeStay = Math.floor(Math.random() * 91); // 0-90 days
     const bookingDate = new Date(stayDate);
     bookingDate.setDate(bookingDate.getDate() - daysBeforeStay);
     return bookingDate.toISOString().split("T")[0];
-  } else {
-    // Future: booking is today or recent days (more realistic for future bookings)
-    const daysBack = Math.min(Math.floor(Math.random() * 14), daysDifference); // 0-14 days back, but not future
-    const bookingDate = new Date(today);
-    bookingDate.setDate(bookingDate.getDate() - daysBack);
-    return bookingDate.toISOString().split("T")[0];
   }
+  // Future: booking is today or recent days (more realistic for future bookings)
+  const daysBack = Math.min(Math.floor(Math.random() * 14), daysDifference); // 0-14 days back, but not future
+  const bookingDate = new Date(today);
+  bookingDate.setDate(bookingDate.getDate() - daysBack);
+  return bookingDate.toISOString().split("T")[0];
 }
 
 async function updateHistoricalReservations() {
@@ -68,9 +72,7 @@ async function updateHistoricalReservations() {
     console.log(`Processing all dates from: ${todayStr}`);
 
     // Get all room rates (both past and future)
-    const allRates = await db
-      .select()
-      .from(roomRates);
+    const allRates = await db.select().from(roomRates);
 
     console.log(`Found ${allRates.length} total room rate entries`);
 
@@ -97,7 +99,9 @@ async function updateHistoricalReservations() {
     for (const [dayStr, dayRates] of ratesByDay) {
       const stayDate = new Date(`${dayStr}T00:00:00`); // Ensure proper date parsing
       const isWeekendDay = isWeekend(stayDate);
-      const daysDifference = Math.floor((stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const daysDifference = Math.floor(
+        (stayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       // Get dynamic reservation rate based on date
       const reservationRate = getBookingRate(stayDate, today);
@@ -127,7 +131,7 @@ async function updateHistoricalReservations() {
       } else {
         futureUpdated += numToReserve;
       }
-      
+
       if (isWeekendDay) {
         weekendUpdated += numToReserve;
       } else {
@@ -135,8 +139,13 @@ async function updateHistoricalReservations() {
       }
 
       // Log progress for key dates or every 1000 updates
-      if (ratesByDay.size <= 20 || totalUpdated % 1000 === 0 || daysDifference >= 0 && daysDifference <= 40) {
-        const dateType = daysDifference < 0 ? "Historical" : `Future (+${daysDifference}d)`;
+      if (
+        ratesByDay.size <= 20 ||
+        totalUpdated % 1000 === 0 ||
+        (daysDifference >= 0 && daysDifference <= 40)
+      ) {
+        const dateType =
+          daysDifference < 0 ? "Historical" : `Future (+${daysDifference}d)`;
         console.log(
           `✓ ${dayStr} ${dateType} (${isWeekendDay ? "Weekend" : "Weekday"}): ${numToReserve}/${dayRates.length} rooms reserved (${Math.round(reservationRate * 100)}%)`
         );
