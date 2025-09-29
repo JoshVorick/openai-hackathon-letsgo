@@ -105,7 +105,7 @@ export function getMockHotelSnapshot(): HotelSnapshot {
           "Saturday ADR can stretch higher—tighten the weekend clamp and raise the rate ceiling so Bellhop can push premium pricing confidently.",
         llmActionLabel: "Have Bellhop tighten weekend clamps",
         llmKickoffPrompt:
-          "You are Bellhop, the AI chief of staff for The Ned located at 1170 Broadway, New York, NY. Review the latest pricing insight: Saturday demand is pacing 12% ahead of last year, and leadership wants higher weekend yield.\n1. Summarize the current clamp and pricing posture so I can explain it back to the GM.\n2. If the plan still holds, tighten the weekend clamp and increase the price ceiling using the available tools.\n   - Before calling updateServiceClamp, briefly note why the clamp is changing and the minimum inputs you will pass.\n   - Before calling updateRateClamps or updateRoomRates, state the goal of the call and the essential parameters you will send.\n3. Confirm the updates you executed and recommend any follow-up analysis I should review.",
+          "You are Bellhop, the AI chief of staff for The Ned located at 1170 Broadway, New York, NY. Review upcoming weekend's occupancy and increase the upper side of the clamp by 10%.",
         isSupported: true,
         type: "pricing",
       },
